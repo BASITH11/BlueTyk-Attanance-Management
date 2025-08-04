@@ -73,18 +73,17 @@ class MembersController extends Controller
                     'errors'  => $validator->errors(),
                 ], 422);
             }
-    
-            //sending command to get the all user from the device 
-            if($request->filled('deviceId')){
 
-                $device = Device::find($request->deviceId); 
-                if($device->device_serial_no){
+            //sending command to get the all user from the device 
+            if ($request->filled('deviceId')) {
+
+                $device = Device::find($request->deviceId);
+                if ($device->device_serial_no) {
                     CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
                 }
-                
             }
-           
-    
+
+
 
             $imagePath = null;
             if ($request->hasFile('image')) {
@@ -107,7 +106,7 @@ class MembersController extends Controller
                 'designation'   => $request->designation,
                 'status'        => 'pending',
                 'device_user_id' => null,
-                'source' =>'app',   
+                'source' => 'app',
             ]);
 
             // After $member is created
@@ -117,7 +116,6 @@ class MembersController extends Controller
                     'device_id'   => $request->deviceId,
                     'assigned_at' => now(),
                 ]);
-
             }
 
 
@@ -193,7 +191,7 @@ class MembersController extends Controller
                 ]);
             }
 
-             CommandQueues::sendGetAllUsersCommand($deviceSerialNo);
+            CommandQueues::sendGetAllUsersCommand($deviceSerialNo);
 
             $member->delete();
 
@@ -311,6 +309,8 @@ class MembersController extends Controller
                 ], 422);
             }
 
+            DB::beginTransaction();
+
             $member = Members::findOrFail($request->id);
 
             if ($request->hasFile('image')) {
@@ -337,7 +337,25 @@ class MembersController extends Controller
                 );
             }
 
+            $device = Device::where('id', $request->deviceId)->first();
 
+            $kv = [
+                "PIN=$member->device_user_id",
+                "Name=$member->name",
+                "Pri=0",
+                "Card=$member->card_no",
+            ];
+
+            $cmds = "C:" . time() . ":DATA UPDATE USERINFO " . implode("\t", $kv);
+
+            CommandQueues::create([
+                'device_serial_no' => $device->device_serial_no,
+                'command' => $cmds,
+                'sent' => false,
+            ]);
+
+
+            DB::commit();
             return response()->json([
                 'status'  => true,
                 'message' => 'Member updated successfully',
@@ -346,6 +364,7 @@ class MembersController extends Controller
                 ]
             ], 200);
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'status'  => false,
                 'message' => $e->getMessage(),

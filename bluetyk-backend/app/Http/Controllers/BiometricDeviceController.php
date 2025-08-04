@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AttendanceLogTimeTracker;
 use App\Models\CommandQueues;
 use App\Models\Device;
 use App\Models\Members;
 use App\Models\MemberToDevice;
 use App\Models\DeviceUserLogs;
+use App\Models\Attendances;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -39,13 +41,6 @@ class BiometricDeviceController extends Controller
             ->orderBy('id')
             ->get();
 
-        // // Always add "get all users" command dynamically
-        // $getAllCommand = "C:" . time() . ":DATA QUERY USERINFO Stamp=0";
-        // $commands->prepend((object)[
-        //     'id' => null, // fake ID for this dynamic command
-        //     'command' => $getAllCommand,
-        // ]);
-
 
         if ($commands->isEmpty()) {
             return response("OK", 200)->header('Content-Type', 'text/plain');
@@ -65,21 +60,6 @@ class BiometricDeviceController extends Controller
     /**
      * Handle GET /iclock/cdata.aspx — important for initial handshake
      */
-    public function handleCdataGet(Request $request)
-    {
-        Log::info('[GET] /iclock/cdata.aspx', [
-            'Timestamp' => now()->toDateTimeString(),
-            'SN' => $request->query('SN'),
-            'IP' => $request->ip(),
-            'Query Params' => $request->query(),
-        ]);
-
-        return response('OK', 200)->header('Content-Type', 'text/plain');
-    }
-
-    /**
-     * Handle POST for both /cdata.aspx and /devicecmd.aspx
-     */
     public function handlePost(Request $request)
     {
         $sn = $request->query('SN');
@@ -93,6 +73,7 @@ class BiometricDeviceController extends Controller
         foreach ($lines as $line) {
             $line = trim($line);
 
+            #Handle USER lines
             if (stripos($line, 'USER') === 0) {
                 $parsed = self::parseUserLine($line);
 
@@ -118,21 +99,57 @@ class BiometricDeviceController extends Controller
                     }
                 }
             }
+
+            #Handle attendance log lines
+            elseif (preg_match('/^\d+\t\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/', $line)) {
+                $columns = explode("\t", $line);
+
+                if (count($columns) >= 2) {
+                    $pin = (int) $columns[0];
+                    $timestamp = $columns[1];
+
+                    // Insert only if not already existing
+                    $exists = Attendances::where('device_serial_no', $sn)
+                        ->where('pin', $pin)
+                        ->where('timestamp', $timestamp)
+                        ->exists();
+
+                    if (!$exists) {
+                        try {
+                            Attendances::create([
+                                'device_serial_no' => $sn,
+                                'pin' => $pin,
+                                'timestamp' => $timestamp,
+                                'status' => $columns[2] ?? null,
+                                'verified' => $columns[3] ?? null,
+                                'work_code' => $columns[4] ?? null,
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to insert attendance log', [
+                                'line' => $line,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }
+                }
+            }
         }
 
+        #Delete device users that are no longer present
         if (!empty($receivedPins)) {
             DeviceUserLogs::where('device_serial_no', $sn)
                 ->whereNotIn('pin', $receivedPins)
                 ->delete();
         }
 
+        #Trigger background processes
         Members::addingMemberToDevice();
         DeviceUserLogs::updateSuccessStatus();
         DeviceUserLogs::updateDeletedStatus();
+        AttendanceLogTimeTracker::AttendaceCommand();
 
         return response('OK', 200)->header('Content-Type', 'text/plain');
     }
-
 
 
 

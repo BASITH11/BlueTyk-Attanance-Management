@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Rules\Exists;
 
 class DeviceUserLogs extends Model
 {
@@ -72,10 +73,6 @@ class DeviceUserLogs extends Model
 
                 if (!$exists) {
                     $member->update(['status' => 'deleted']);
-
-                    if (!$member->trashed()) {
-                        $member->delete(); // soft delete
-                    }
                 }
             }
         }
@@ -105,5 +102,57 @@ class DeviceUserLogs extends Model
         }
 
         return $expectedPin;
+    }
+
+    /**
+     * function for getting the users to app from device 
+     */
+
+    public static function addUserDeviceToApp()
+    {
+        $deviceUsers = self::all();
+
+        foreach ($deviceUsers as $user) {
+            $deviceSerialNo = $user->device_serial_no;
+            $pin            = $user->pin;
+            $name           = $user->name;
+            $cardNo         = $user->card_no;
+
+            if (empty($pin) || empty($deviceSerialNo)) {
+                continue; // Skip invalid entries
+            }
+
+            $device = Device::where('device_serial_no', $deviceSerialNo)->first();
+            if (!$device) {
+                continue; // Skip if device not found
+            }
+
+            $exists = Members::where('device_user_id', $pin)
+                ->where('status', 'success')
+                ->whereHas('memberToDevice.device', function ($q) use ($deviceSerialNo) {
+                    $q->where('device_serial_no', $deviceSerialNo);
+                })->exists();
+
+            if (!$exists) {
+                $member = Members::create([
+                    'name'            => $name ?? 'unknown',
+                    'phono_no'        => null,
+                    'card_no'         => $cardNo ?? null,
+                    'image'           => null,
+                    'address'         => null,
+                    'date_of_birth'   => null,
+                    'designation'     => null,
+                    'device_user_id'  => $pin,
+                    'status'          => 'success',
+                    'source'          => 'device',
+                ]);
+
+                MemberToDevice::create([
+                    'member_id'   => $member->id,
+                    'device_id'   => $device->id,
+                    'assigned_at' => now(),
+                ]);
+            }
+        }
     }
 }
