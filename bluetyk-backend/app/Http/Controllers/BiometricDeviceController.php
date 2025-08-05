@@ -57,8 +57,19 @@ class BiometricDeviceController extends Controller
         return response($response, 200)->header('Content-Type', 'text/plain');
     }
 
+
+
     /**
      * Handle GET /iclock/cdata.aspx — important for initial handshake
+     */
+     public function handleCdataGet(Request $request){
+
+      return response("OK", 200)->header('Content-Type', 'text/plain');
+      
+     }
+
+    /**
+     * handle the post method /iclock/cdata.aspx / /iclock/devicecmd.aspx
      */
     public function handlePost(Request $request)
     {
