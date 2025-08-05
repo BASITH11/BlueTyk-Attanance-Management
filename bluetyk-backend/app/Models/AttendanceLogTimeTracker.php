@@ -21,7 +21,7 @@ class AttendanceLogTimeTracker extends Model
     */
     public static function AttendaceCommand()
     {
-        $devices = Device::whereNotNull('device_serial_no');
+        $devices = Device::whereNotNull('device_serial_no')->get();
 
         $now = Carbon::now();
 
