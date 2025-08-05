@@ -157,7 +157,7 @@ class BiometricDeviceController extends Controller
         DeviceUserLogs::updateSuccessStatus();
         DeviceUserLogs::updateDeletedStatus();
         DeviceUserLogs::addUserDeviceToApp();
-        AttendanceLogTimeTracker::AttendaceCommand();
+    
 
         return response('OK', 200)->header('Content-Type', 'text/plain');
     }
