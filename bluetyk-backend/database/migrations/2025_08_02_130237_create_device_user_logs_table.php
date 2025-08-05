@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('device_user_logs', function (Blueprint $table) {
             $table->id();
             $table->string('device_serial_no');
-            $table->integer('Pin');
+            $table->integer('pin');
             $table->string('name');
             $table->string('card_no');
             $table->timestamps();

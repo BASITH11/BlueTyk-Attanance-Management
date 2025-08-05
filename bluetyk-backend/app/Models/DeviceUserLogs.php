@@ -154,5 +154,6 @@ class DeviceUserLogs extends Model
                 ]);
             }
         }
+
     }
 }
