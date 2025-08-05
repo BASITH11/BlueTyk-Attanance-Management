@@ -65,7 +65,7 @@ class BiometricDeviceController extends Controller
      public function handleCdataGet(Request $request){
 
       return response("OK", 200)->header('Content-Type', 'text/plain');
-      
+
      }
 
     /**
@@ -133,7 +133,6 @@ class BiometricDeviceController extends Controller
                                 'timestamp' => $timestamp,
                                 'status' => $columns[2] ?? null,
                                 'verified' => $columns[3] ?? null,
-                                'work_code' => $columns[4] ?? null,
                             ]);
                         } catch (\Exception $e) {
                             Log::error('Failed to insert attendance log', [
