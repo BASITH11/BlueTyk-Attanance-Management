@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
 class AttendanceLogTimeTracker extends Model
 {
-    protected $table = 'attenance_log_time_trackers';
+    protected $table = 'attendance_log_time_trackers';
 
     protected $fillable = [
         'device_serial_no',
