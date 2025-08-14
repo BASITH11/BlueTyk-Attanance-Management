@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\Members\MembersController;
 use App\Http\Controllers\Api\Device\DeviceController;
+use App\Http\Controllers\Api\Attandance\AttandaceController;
+use App\Http\Controllers\Api\Dashboard\DashboardController;
 use App\Http\Controllers\BiometricDeviceController;
 
 
@@ -18,6 +20,8 @@ UserController::Routes();
 LoginController::Routes();
 MembersController::Routes();
 DeviceController::Routes();
+AttandaceController::Routes();
+DashboardController::Routes();
 
 
 

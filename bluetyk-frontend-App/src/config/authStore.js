@@ -6,7 +6,7 @@ export const useAuthStore = create(
         (set) => ({
             user: null,
             authToken: null,
-            isAuthenticated: true,
+            isAuthenticated: false,
 
             login: (user, authToken) =>
                 set(() => ({
@@ -28,3 +28,11 @@ export const useAuthStore = create(
         }
     )
 );
+
+
+export const useSubscriptionStore = create((set) => ({
+  open: false,
+  openDrawer: () => set({ open: true }),
+  closeDrawer: () => set({ open: false }),
+}));
+

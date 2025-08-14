@@ -1,127 +1,135 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { AppShell, NavLink, Stack, Box, Text, useMantineTheme } from "@mantine/core";
 import {
-    Stack,
-    Text,
-    Accordion,
-    Box,
-    ActionIcon,
-    Avatar,
-    Flex
-} from "@mantine/core";
-import { IconPower, IconBell, IconPlus } from "@tabler/icons-react";
+    IconHome2,
+    IconUserPlus,
+    IconDeviceDesktop,
+    IconUsers,
+    IconChartBar,
+    IconApps,
+    IconChevronRight,
+    IconLogout
+} from "@tabler/icons-react";
+import { useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 
-
-export default function Navbar({ toggle }) {
-
+export default function Navbar() {
     const routerState = useRouterState();
     const currentPath = routerState.location.pathname;
-    const menuItems = [
+    const theme = useMantineTheme();
+
+    const [openMenu, setOpenMenu] = useState(null); // track which menu is open
+
+    const navLinks = [
         {
-            label: "Dashboard",
-            url: "/dashboard",
-            type: "link"
+            title: "Main",
+            links: [
+                { label: "Dashboard", to: "/dashboard", icon: IconHome2 },
+                { label: "Member", to: "/members/member-layout", icon: IconUserPlus },
+                { label: "Device", to: "/device/device-layout", icon: IconDeviceDesktop },
+                { label: "Users", to: "/users/user-layout", icon: IconUsers },
+                { label: "Attendance", to: "/attendance/view-attendence", icon: IconChartBar },
+            ],
         },
         {
-            label: "Members Management",
-            type: "dropdown",
-            items: [
-                { label: "Add Members", url: "/members/add-members" },
-                { label: "View Members", url: "/members/view-members"},
-                
-            ]
+            title: "More Options",
+            links: [
+                {
+                    label: "More 1",
+                    icon: IconApps,
+                    subLinks: [
+                        { label: "Settings", to: "/more/settings" },
+                        { label: "Reports", to: "/more/reports" },
+                    ],
+                },
+                {
+                    label: "More 2",
+                    icon: IconApps,
+                    subLinks: [
+                        { label: "Logs", to: "/more/logs" },
+                        { label: "Analytics", to: "/more/analytics" },
+                    ],
+                },
+            ],
         },
-       
     ];
 
+    const handleToggle = (label) => {
+        setOpenMenu(openMenu === label ? null : label); // toggle open/close
+    };
+
     return (
-        <Stack className="relative flex justify-between h-full">
-            <Stack gap={1} className="p-2 overflow-auto">
-                <Box className=" p-2 border-b-3 border-[var(--app-primary-color)]">
-                    <Text size="md">MENU</Text>
-                </Box>
-                {
-                    menuItems.map((menu, index) => {
-                        if (menu.type === "link") {
-                            return (
-                                <Link key={index} to={menu.url} className={`flex items-center gap-1 py-2 h-full text-sm px-2 cursor-pointer hover:bg-[var(--app-primary-active-color)] hover:text-[var(--app-primary-text-color)] ${currentPath === menu.url ? "bg-[var(--app-primary-active-color)] text-[var(--app-primary-text-color)]" : ""}`} 
-                                onClick={toggle}>
-                                    <Text size="sm" className="font-semibold">
-                                        {menu.label.toUpperCase()}
-                                    </Text>
-                                </Link>
-                            )
-                        } else {
-                            return (
-                                <Accordion
-                                    key={index}
-                                    multiple={true}
-                                    defaultValue={["creation"]}
-                                    chevron={<IconPlus/>}
-                                    styles={{
-                                        item: {
-                                            border: 'none',
-                                            backgroundColor: 'transparent',
-                                        },
-                                        control: {
-                                            padding: "0px 0 0 8px",
-                                            fontWeight: 600,
-                                            backgroundColor: 'transparent',
-                                            '&:hover': {
-                                                backgroundColor: "var(--app-primary-active-color)",
+        <Box
+            mt={20}
+            sx={{
+                width: "75%",
+                padding: "1rem",
+                border: "1px solid #e0e0e0",
+                borderRadius: "8px",
+            }}
+        >
+            <Stack spacing="sm">
+                {navLinks.map((section) => (
+                    <><Box key={section.title} p={10}>
+                        <Text weight={700} size="md" mb={4}>
+                            {section.title}
+                        </Text>
+                        <Stack spacing="xs">
+                            {section.links.map((link) => (
+                                <Box key={link.label}>
+                                    {/* Parent NavLink */}
+                                    <NavLink
+                                        href={link.to || "#"} // parent can optionally have a route
+                                        label={link.label}
+                                        leftSection={<link.icon size={20} stroke={1.5} />}
+                                        rightSection={link.subLinks ? <IconChevronRight size={12} stroke={1.5} /> : null}
+                                        active={currentPath === link.to}
+                                        variant={currentPath === link.to ? "filled" : "subtle"}
+                                        onClick={(e) => {
+                                            if (link.subLinks) {
+                                                e.preventDefault(); // prevent navigation if submenu exists
+                                                handleToggle(link.label);
                                             }
-                                        },
+                                        }} />
 
-                                    }}
-                                    transitionDuration={500}
-                                >
-                                    <Accordion.Item value="creation">
-                                        <Accordion.Control>
-                                            <Text size="sm" className="font-semibold">
-                                                {menu.label.toUpperCase()}
-                                            </Text>
-                                        </Accordion.Control>
-                                        <Accordion.Panel>
-                                            <Stack gap={1}>
-                                                {menu.items.map((subMenu, subIndex) => (
-                                                    <Link
-                                                        key={subIndex}
-                                                        to={subMenu.url}
-                                                        className={`block py-1 px-2 text-sm hover:bg-[var(--app-primary-active-color)] hover:text-[var(--app-primary-text-color)] ${currentPath === subMenu.url ? "bg-[var(--app-primary-active-color)] text-[var(--app-primary-text-color)]" : ""}`}
-                                                        onClick={toggle}
-                                                    >
-                                                        {subMenu.label.toUpperCase()}
-                                                    </Link>
-                                                ))}
-                                            </Stack>
-                                        </Accordion.Panel>
-                                    </Accordion.Item>
-                                </Accordion>
-                            )
-                        }
-
-                    })
-                }
-
+                                    {/* Collapsible Submenu */}
+                                    {link.subLinks && openMenu === link.label && (
+                                        <Stack pl={20} spacing="xs">
+                                            {link.subLinks.map((sub) => (
+                                                <NavLink
+                                                    key={sub.label}
+                                                    href={sub.to}
+                                                    label={sub.label}
+                                                    leftSection={<Box style={{ width: 16 }} />}
+                                                    rightSection={<IconChevronRight size={12} stroke={1.5} />}
+                                                    active={currentPath === sub.to}
+                                                    variant={currentPath === sub.to ? "filled" : "subtle"}
+                                                    sx={{ fontSize: 14 }} />
+                                            ))}
+                                        </Stack>
+                                    )}
+                                </Box>
+                            ))}
+                        </Stack>
+                    </Box></>
+                ))}
             </Stack>
 
-            <Box className="md:hidden w-full flex justify-around items-center border-t-3 border-[var(--app-primary-color)] pt-2">
-                <Box className="flex">
-                    <Avatar radius="sm"> T </Avatar>
-                    <Box px="sm">
-                        <Text size="sm">demo@gmail.com</Text>
-                        <Text size="xs" c="dimmed">admin</Text>
-                    </Box>
-                </Box>
-                <Box className="flex gap-2">
-                    <ActionIcon className="hidden md:flex" variant="filled" color="rgba(227, 48, 60, 1)" size="md">
-                        <IconPower size={18} />
-                    </ActionIcon>
-                    <ActionIcon className="hidden md:flex" variant="filled" color="rgb(23, 23, 112, 1)" size="md">
-                        <IconBell size={18} />
-                    </ActionIcon>
-                </Box>
-            </Box>
+            <AppShell.Section>
+                <NavLink
+                    label="Logout"
+                    leftSection={<IconLogout size="1.2rem" />}
+                    variant="subtle"
+                    color="red"
+                    styles={{
+                        root: {
+                            borderRadius: theme.radius.md,
+                            '&:hover': {
+                                backgroundColor: theme.colors.red[0],
+                            }
+                        }
+                    }} />
+            </AppShell.Section>
 
-        </Stack>
-    )
+        </Box>
+    );
 }

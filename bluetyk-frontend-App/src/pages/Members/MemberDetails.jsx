@@ -2,7 +2,7 @@ import React from "react";
 import {
     IconUser,
     IconPhone,
-    IconCreditCard, IconCalendar, IconMapPin, IconBriefcase, IconHash, IconPower, IconDeviceDesktop, IconTimeDuration10,
+    IconCreditCard, IconCalendar, IconMapPin, IconBriefcase, IconCheck , IconPower, IconDeviceDesktop, IconTimeDuration10,
 } from "@tabler/icons-react";
 import {
     Stack,
@@ -18,17 +18,20 @@ import {
 } from "@mantine/core";
 import { useFetchMemberById, useFetchMemberImage } from "../../queries/members";
 import ProfilePlaceholder from '../../assets/images/profile.jpg';
-import { useParams } from '@tanstack/react-router';
+import { useSearch } from '@tanstack/react-router';
 
 function MemberDetails() {
 
-    const { memberId } = useParams({ strict: false });
+    const search = useSearch({ from: '/members/member-layout' });
+    const memberId = search?.memberId || null;
     const { data, isLoading } = useFetchMemberById(memberId);
     const member = data?.member ?? {};
     const memberToDevice = member.member_to_device ?? {}
-    const  device = memberToDevice.device ?? {}
+    const device = member.member_to_device?.map(item => item.device) ?? [];
 
-   
+
+
+
 
     const {
         data: memberImageBlob,
@@ -49,12 +52,7 @@ function MemberDetails() {
 
     return (
         <Paper p="xl">
-            <Group gap="sm" mb="sm" align="center">
-                <IconUser size={28} />
-                <Title order={2}>Member Details</Title>
-            </Group>
 
-            <Divider my="md" />
 
             <Grid>
                 <Grid.Col mt='10' span={{ base: 12, md: 6, lg: 4 }}>
@@ -158,42 +156,39 @@ function MemberDetails() {
                         </Stack>
 
                     ) : (
-                        <Stack gap="xl">
-                            <Group align="center" gap="xs" style={fieldStyle}>
-                                <IconDeviceDesktop size={18} />
-                                <Text fw={700}>Device</Text>
-                                <Text fw={500} c={device.device_name?.trim() ? 'black' : 'red'}>
-                                    {device.device_name?.trim() || "Not available"}
-                                </Text>
-                            </Group>
+                        <Grid.Col span={{ base: 12, md: 6, lg: 4 }}>
+                            {isLoading ? (
+                                <Stack>
+                                    {Array.from({ length: 3 }).map((_, index) => (
+                                        <Skeleton key={index} height={30} width="100%" />
+                                    ))}
+                                </Stack>
+                            ) : device.length > 0 ? (
+                                <Stack gap="sm">
+                                    <Group align="center" gap="xs" style={fieldStyle}>
+                                        <IconDeviceDesktop size={18} />
+                                        <Text fw={700}>Devices:</Text>
+                                    </Group>
 
-                            <Group align="center" gap="xs" style={fieldStyle}>
-                                <IconHash size={18} />
-                                <Text fw={700}>Serial Number:</Text>
-                                <Text fw={500} c={device.device_serial_no?.trim() ? 'black' : 'red'}>
-                                    {device.device_serial_no?.trim() || "Not available"}
-                                </Text>
-                            </Group>
-
-                            <Group align="center" gap="xs" style={fieldStyle}>
-                                <IconPower size={18} />
-                                <Text fw={700}>Status:</Text>
-                                <Text fw={500} c={device.device_status === 1 ? 'green' : 'red'}>
-                                    {device?.device_status === 1 ? "Active" : "Inactive"}
-                                </Text>
-                            </Group>
-
-                            <Group align="center" gap="xs" style={fieldStyle}>
-                                <IconTimeDuration10 size={18} />
-                                <Text fw={700}> Linked At</Text>
-                                <Text fw={500} c={memberToDevice.assigned_at?.trim() ? 'black' : 'red'}>
-                                    {memberToDevice.assigned_at?.trim() || "Not available"}
-                                </Text>
-                            </Group>
-
-
-
-                        </Stack>
+                                    <Stack spacing={4} pl={28}> {/* indent to align with the label */}
+                                        {device.map((dev, index) => (
+                                            <Group key={index} spacing="xs">
+                                                <IconCheck size={16} color="green" /> {/* tick icon */}
+                                                <Text fw={500}>{dev.device_name || "Not available"}</Text>
+                                            </Group>
+                                        ))}
+                                    </Stack>
+                                </Stack>
+                            ) : (
+                                <Stack>
+                                    <Group align="center" gap="xs" style={fieldStyle}>
+                                        <IconDeviceDesktop size={18} />
+                                        <Text fw={700}>Devices:</Text>
+                                    </Group>
+                                    <Text pl={28}>No devices linked.</Text>
+                                </Stack>
+                            )}
+                        </Grid.Col>
                     )}
 
                 </Grid.Col>

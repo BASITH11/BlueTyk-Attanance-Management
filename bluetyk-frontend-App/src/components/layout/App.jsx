@@ -4,6 +4,7 @@ import { useDisclosure } from "@mantine/hooks";
 import Header from "./Header";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
+import SubscriptionDrawer from "./SubscriptionDrawer";
 import { useAuthStore } from "../../config/authStore";
 
 
@@ -14,7 +15,7 @@ const App = () => {
 
     return (
         <AppShell
-            header={{ height: { base: 80, sm: 120 } }}
+            header={{ height: { base: 60, sm: 70 } }}
             navbar={{
                 width: 250, breakpoint: "sm", collapsed: { mobile: !opened, desktop: true }
             }}
@@ -28,15 +29,14 @@ const App = () => {
                 <Header toggle={toggle} />
             </AppShell.Header>
 
-
-            <AppShell.Navbar p="sm">
+            <AppShell.Navbar >
                 <Navbar toggle={toggle} />
             </AppShell.Navbar>
 
-            <AppShell.Main className="flex-grow"><Outlet /></AppShell.Main>
+            <AppShell.Main className="flex-grow" style={{ backgroundColor: "var(--app-primary-background-color)", }}><Outlet /> <SubscriptionDrawer /></AppShell.Main>
 
 
-            <Box className="relative w-full flex justify-center">
+            <Box className="relative w-full flex justify-center" style={{ backgroundColor: "var(--app-primary-background-color)", }}>
                 <Footer />
             </Box>
 

@@ -1,6 +1,7 @@
 import React from "react";
 import {
-    IconDeviceDesktop, IconFingerprint, IconHash, IconPower
+    IconDeviceDesktop, IconFingerprint, IconHash, IconMap, IconPower,
+    IconTextScan2
 } from "@tabler/icons-react";
 import {
     Stack,
@@ -15,16 +16,19 @@ import {
 } from "@mantine/core";
 import { useFetchDeviceById } from "../../queries/device";
 
-import { useParams } from '@tanstack/react-router';
+import { useSearch } from '@tanstack/react-router';
 
 function DeviceDetails() {
 
-    const { deviceId } = useParams({ strict: false });
+    const search = useSearch({ from: '/device/device-layout' });
+    const deviceId = search?.deviceId || null;
     const { data, isLoading } = useFetchDeviceById(deviceId);
     const device = data?.device ?? {};
+    const location = device?.device_to_location ?? {};
+    const deviceTypes = device?.device_to_device_type ?? {};
 
 
-
+    console.log(data);
 
 
     const fieldStyle = {
@@ -70,12 +74,19 @@ function DeviceDetails() {
                                     {device.device_serial_no?.trim() || "Not available"}
                                 </Text>
                             </Group>
+                            <Group align="center" gap="xs" style={fieldStyle}>
+                                <IconMap size={18} />
+                                <Text fw={700}>Location:</Text>
+                                <Text fw={500} c={location.location_name?.trim() ? 'black' : 'red'}>
+                                    {location.location_name?.trim() || "Not available"}
+                                </Text>
+                            </Group>
 
                             <Group align="center" gap="xs" style={fieldStyle}>
-                                <IconPower size={18} />
-                                <Text fw={700}>Status:</Text>
-                                <Text fw={500} c={device.device_status === 1 ? 'green' : 'red'}>
-                                    {device?.device_status === 1 ? "Active" : "Inactive"}
+                                <IconTextScan2 size={18} />
+                                <Text fw={700}>Device Type:</Text>
+                                <Text fw={500} c={deviceTypes.type?.trim() ? 'black' : 'red'}>
+                                    {deviceTypes.type?.trim() || "Not available"}
                                 </Text>
                             </Group>
 

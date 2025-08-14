@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -16,8 +16,13 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserTableSeeder::class,
             MemberTableSeeder::class,
-            DeviceTableSeeder::class,
             UserTypesSeeder::class,
+            LocationSeeder::class,
+            DeviceTypeSeeder::class,
+            DeviceTableSeeder::class,   
+            AttandanceSeeder::class,
+            DeviceUserLogSeeder::class,
+            SettingsSeeder::class,
         ]);
     }
 }

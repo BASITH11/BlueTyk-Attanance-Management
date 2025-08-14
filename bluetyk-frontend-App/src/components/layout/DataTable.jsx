@@ -40,7 +40,9 @@ const DataTable = ({
   );
   const [selectedIds, setSelectedIds] = useState([]);
 
-
+  const getNestedValue = (obj, path) => {
+    return path.split('.').reduce((acc, part) => acc?.[part], obj);
+  };
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
@@ -111,185 +113,185 @@ const DataTable = ({
         </Group>
       </Modal>
 
-      <Paper p="xl" withBorder style={{ borderRadius: "10px" }}>
-        <Group justify="space-between" mb="md">
-          <Select
-            label="Rows per page"
-            data={pageSizeOptions.map((n) => ({
-              value: `${n}`,
-              label: `${n}`,
-            }))}
-            value={pageSize.toString()}
-            onChange={(val) => {
-              setPageSize(Number(val));
-              setActivePage(1);
-            }}
-            maw={100}
-          />
+      {/* <Paper p="xl" withBorder style={{ borderRadius: "10px" }}> */}
+      <Group justify="space-between" mb="md">
+        <Select
+          label="Rows per page"
+          data={pageSizeOptions.map((n) => ({
+            value: `${n}`,
+            label: `${n}`,
+          }))}
+          value={pageSize.toString()}
+          onChange={(val) => {
+            setPageSize(Number(val));
+            setActivePage(1);
+          }}
+          maw={100}
+        />
 
-          <TextInput
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.currentTarget.value);
-              setActivePage(1);
-            }}
-            rightSection={
-              search && (
-                <ActionIcon
-                  size="sm"
-                  onClick={() => setSearch("")}
-                  variant="transparent"
-                >
-                  <IconX size={16} />
-                </ActionIcon>
-              )
-            }
-          />
-        </Group>
+        <TextInput
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.currentTarget.value);
+            setActivePage(1);
+          }}
+          rightSection={
+            search && (
+              <ActionIcon
+                size="sm"
+                onClick={() => setSearch("")}
+                variant="transparent"
+              >
+                <IconX size={16} />
+              </ActionIcon>
+            )
+          }
+        />
+      </Group>
 
-        {selectedIds.length > 0 && showCheckboxes && (
-          <Text size="sm" color="red" mb="xs">
-            {selectedIds.length} selected
-          </Text>
-        )}
-        <TableScrollContainer>
-          <Table
-            withRowBorders
-            highlightOnHover
-            style={{ borderRadius: "10px" }}
-          >
-            <Table.Thead>
-              <Table.Tr>
-                {showCheckboxes && (
-                  <Table.Th>
-                    <Menu shadow="md" width={180}>
-                      <Menu.Target>
-                        <ActionIcon variant="subtle" color="gray">
-                          <IconAdjustmentsHorizontal size={18} />
-                        </ActionIcon>
-                      </Menu.Target>
-                      <Menu.Dropdown>
-                        <Menu.Item
-                          leftSection={<IconTrash size={16} />}
-                          color="red"
-                          onClick={handleBulkDelete}
-                          disabled={selectedIds.length === 0}
-                        >
-                          Delete Selected
-                        </Menu.Item>
-                      </Menu.Dropdown>
-                    </Menu>
-                  </Table.Th>
-                )}
-                {columns.map((col) => (
-                  <Table.Th key={col.accessor}>{col.label}</Table.Th>
-                ))}
-                {showActions && <Table.Th align="right">Actions</Table.Th>}
-              </Table.Tr>
-            </Table.Thead>
-
-            <Table.Tbody>
-              {anyMatch ? (
-                paginatedData.map((row) => (
-                  <Table.Tr key={row.id}>
-                    {showCheckboxes && (
-                      <Table.Td>
-                        <input
-                          type="checkbox"
-                          checked={isSelected(row.id)}
-                          onChange={() => toggleSelect(row.id)}
-                        />
-                      </Table.Td>
-                    )}
-                    {columns.map((col) => (
-                      <Table.Td key={col.accessor}>
-                        {col.render
-                          ? col.render(row[col.accessor], row)
-                          : row[col.accessor]}
-                      </Table.Td>
-                    ))}
-                    {showActions && (
-                      <Table.Td>
-                        <Menu shadow="md" width={180}>
-                          <Menu.Target>
-                            <ActionIcon variant="subtle" color="gray">
-                              <IconDotsVertical size={18} />
-                            </ActionIcon>
-                          </Menu.Target>
-                          <Menu.Dropdown>
-                            {onEdit && (
-                              <Menu.Item
-                                leftSection={<IconPencil size={16} />}
-                                onClick={() => onEdit(row)}
-                              >
-                                Edit
-                              </Menu.Item>
-                            )}
-                            {onDelete && (
-                              <Menu.Item
-                                leftSection={<IconTrash size={16} />}
-                                color="red"
-                                onClick={() => {
-                                  setRowToDelete(row);
-                                  setConfirmDeleteOpen(true);
-                                }}
-                              >
-                                Delete
-                              </Menu.Item>
-                            )}
-                            {actionOptions.map((action, idx) => (
-                              <Menu.Item
-                                key={idx}
-                                leftSection={action.icon}
-                                onClick={() => action.onClick(row)}
-                              >
-                                {action.label}
-                              </Menu.Item>
-                            ))}
-                          </Menu.Dropdown>
-                        </Menu>
-                      </Table.Td>
-                    )}
-                  </Table.Tr>
-                ))
-              ) : (
-                <Table.Tr>
-                  <Table.Td
-                    colSpan={
-                      columns.length +
-                      (showActions ? 1 : 0) +
-                      (showCheckboxes ? 1 : 0)
-                    }
-                    align="center"
-                  >
-                    No data found.
-                  </Table.Td>
-                </Table.Tr>
+      {selectedIds.length > 0 && showCheckboxes && (
+        <Text size="sm" color="red" mb="xs">
+          {selectedIds.length} selected
+        </Text>
+      )}
+      <TableScrollContainer>
+        <Table
+          withRowBorders
+          highlightOnHover
+          style={{ borderRadius: "10px" }}
+        >
+          <Table.Thead>
+            <Table.Tr>
+              {showCheckboxes && (
+                <Table.Th>
+                  <Menu shadow="md" width={180}>
+                    <Menu.Target>
+                      <ActionIcon variant="subtle" color="white">
+                        <IconAdjustmentsHorizontal size={18} />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        leftSection={<IconTrash size={16} />}
+                        color="red"
+                        onClick={handleBulkDelete}
+                        disabled={selectedIds.length === 0}
+                      >
+                        Delete Selected
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </Table.Th>
               )}
-            </Table.Tbody>
-          </Table>
-        </TableScrollContainer>
+              {columns.map((col) => (
+                <Table.Th key={col.accessor}>{col.label}</Table.Th>
+              ))}
+              {showActions && <Table.Th align="right">Actions</Table.Th>}
+            </Table.Tr>
+          </Table.Thead>
 
-        {/* Pagination */}
-        <Group justify="space-between" mt="md" align="center">
-          <Text size="sm" color="dimmed">
-            Showing {(activePage - 1) * pageSize + 1} to{" "}
-            {Math.min(activePage * pageSize, reorderedData.length)} of{" "}
-            {reorderedData.length} records
-          </Text>
+          <Table.Tbody>
+            {anyMatch ? (
+              paginatedData.map((row) => (
+                <Table.Tr key={row.id}>
+                  {showCheckboxes && (
+                    <Table.Td>
+                      <input
+                        type="checkbox"
+                        checked={isSelected(row.id)}
+                        onChange={() => toggleSelect(row.id)}
+                      />
+                    </Table.Td>
+                  )}
+                  {columns.map((col) => (
+                    <Table.Td key={col.accessor}>
+                      {col.render
+                        ? col.render(getNestedValue(row, col.accessor), row)
+                        : getNestedValue(row, col.accessor)}
+                    </Table.Td>
+                  ))}
+                  {showActions && (
+                    <Table.Td>
+                      <Menu shadow="md" width={180}>
+                        <Menu.Target>
+                          <ActionIcon variant="subtle" color="gray">
+                            <IconDotsVertical size={18} />
+                          </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          {onEdit && (
+                            <Menu.Item
+                              leftSection={<IconPencil size={16} />}
+                              onClick={() => onEdit(row)}
+                            >
+                              Edit
+                            </Menu.Item>
+                          )}
+                          {onDelete && (
+                            <Menu.Item
+                              leftSection={<IconTrash size={16} />}
+                              color="red"
+                              onClick={() => {
+                                setRowToDelete(row);
+                                setConfirmDeleteOpen(true);
+                              }}
+                            >
+                              Delete
+                            </Menu.Item>
+                          )}
+                          {actionOptions.map((action, idx) => (
+                            <Menu.Item
+                              key={idx}
+                              leftSection={action.icon}
+                              onClick={() => action.onClick(row)}
+                            >
+                              {action.label}
+                            </Menu.Item>
+                          ))}
+                        </Menu.Dropdown>
+                      </Menu>
+                    </Table.Td>
+                  )}
+                </Table.Tr>
+              ))
+            ) : (
+              <Table.Tr>
+                <Table.Td
+                  colSpan={
+                    columns.length +
+                    (showActions ? 1 : 0) +
+                    (showCheckboxes ? 1 : 0)
+                  }
+                  align="center"
+                >
+                  No data found.
+                </Table.Td>
+              </Table.Tr>
+            )}
+          </Table.Tbody>
+        </Table>
+      </TableScrollContainer>
 
-          {totalPages > 1 && (
-            <Pagination
-              total={totalPages}
-              value={activePage}
-              onChange={setActivePage}
-              siblings={1}
-              boundaries={1}
-            />
-          )}
-        </Group>
-      </Paper>
+      {/* Pagination */}
+      <Group justify="space-between" mt="md" align="center">
+        <Text size="sm" color="dimmed">
+          Showing {(activePage - 1) * pageSize + 1} to{" "}
+          {Math.min(activePage * pageSize, reorderedData.length)} of{" "}
+          {reorderedData.length} records
+        </Text>
+
+        {totalPages > 1 && (
+          <Pagination
+            total={totalPages}
+            value={activePage}
+            onChange={setActivePage}
+            siblings={1}
+            boundaries={1}
+          />
+        )}
+      </Group>
+      {/* </Paper> */}
     </>
   );
 };

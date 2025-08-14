@@ -1,9 +1,10 @@
 import React from "react";
-import { Paper, Title, Group, Divider, Center, Skeleton, Flex, Badge } from "@mantine/core";
-import { IconUserCog, IconEye } from "@tabler/icons-react";
+import { Paper, Title, Group, Divider, Center, Skeleton, Flex, Badge, Tooltip, Avatar } from "@mantine/core";
+import { IconUserCog, IconEye ,IconListDetails} from "@tabler/icons-react";
 import DataTable from '@components/layout/DataTable';
 import { useFetchMembers, useDeleteMember } from "../../queries/members";
 import { useNavigate } from '@tanstack/react-router';
+import { act } from "react";
 
 
 
@@ -16,6 +17,12 @@ const ViewMembers = () => {
   const { mutate: deleteMutate } = useDeleteMember();
   const navigate = useNavigate();
 
+  const colors = [
+    "cyan",
+    "violet",
+    "pink",
+  ];
+
 
   const columns = [
     { accessor: "name", label: "Name" },
@@ -24,23 +31,40 @@ const ViewMembers = () => {
     {
       accessor: "status",
       label: "Status",
-      render: () => (
-        <Badge color="green" variant="light">
-          Active
+      render: (status) => (
+        <Badge color={status === 'success' ? "green" : "yellow"} variant="light">
+          {status === 'success' ? "Success" : "Pending"}
         </Badge>
       ),
     },
+    {
+      accessor: "device",
+      label: "Devices",
+      render: (_, row) => (
+        <Group spacing="xs">
+          <Avatar.Group>
+            {row.member_to_device?.map((mtd, index) => {
+              const deviceName = mtd.device?.device_name || "Unknown";
+              const color = colors[index % colors.length]; // cycle colors
+              return (
+                <Tooltip key={index} label={deviceName}>
+                  <Avatar radius="xl" size="md" color={color}>
+                    {deviceName.charAt(0).toUpperCase()}
+                  </Avatar>
+                </Tooltip>
+              );
+            })}
+          </Avatar.Group>
+        </Group>
+      ),
+    },
+    { accessor: "source", label: "Source" },
   ];
 
 
   if (isLoading) {
     return (
       <Paper p="xl">
-        <Group gap="sm" mb="sm" align="center">
-          <IconUserCog size={28} />
-          <Title order={2}>View Members</Title>
-        </Group>
-        <Divider my="md" />
 
         {/* Row of Skeletons - Top Row */}
         <Flex justify="space-between" mb="sm">
@@ -62,7 +86,10 @@ const ViewMembers = () => {
 
 
   const handleEdit = (row) => {
-     navigate({ to: `/members/memberEdit/${row.id}` });
+    navigate({
+      to: '/members/member-layout',
+      search: { tab: 'edit', memberId: row.id }
+    });
   };
 
   const handleDelete = (row) => {
@@ -74,17 +101,22 @@ const ViewMembers = () => {
   };
 
   const handleView = (row) => {
-    navigate({ to: `/members/${row.id}` });
+    navigate({
+      to: '/members/member-layout',
+      search: { tab: 'detail', memberId: row.id }
+    });
   };
+
+  const handleLog = (row) => {
+    navigate({
+      to: '/members/member-layout',
+      search: { tab: 'logs', memberId: row.id }
+    });
+  };
+
 
   return (
     <Paper p="xl">
-      <Group gap="sm" mb="sm" align="center">
-        <IconUserCog size={28} />
-        <Title order={2}>View Members</Title>
-      </Group>
-
-      <Divider my="md" />
 
       <DataTable
         data={members}
@@ -99,6 +131,11 @@ const ViewMembers = () => {
             label: "View",
             icon: <IconEye size={16} />,
             onClick: handleView,
+          },
+          {
+            label: "Logs",
+            icon: <IconListDetails size={16} />,
+            onClick: handleLog,
           },
         ]}
       />

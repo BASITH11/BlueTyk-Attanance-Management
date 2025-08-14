@@ -1,8 +1,9 @@
 
 import React, { useRef, useState, useEffect } from "react";
-import { IconUser, IconPhone, IconCreditCard, IconEdit, IconCalendar, IconMapPin, IconBriefcase } from '@tabler/icons-react';
-import { useFetchMemberById, useFetchMemberImage, useUpdateMember } from "../../queries/members";
+import { IconUser, IconPhone, IconCreditCard, IconEdit, IconCalendar, IconMapPin, IconBriefcase, IconTrash, IconPlus, IconDeviceDesktop } from '@tabler/icons-react';
+import { useFetchMemberById, useFetchMemberImage, useUpdateMember, useDeleteMemberFromDevice, useFetchUnlinkedDevice, useAssignDevice } from "../../queries/members";
 import ProfilePlaceholder from '../../assets/images/profile.jpg';
+import { useQueryClient } from "@tanstack/react-query";
 import { useFetchDevices } from "../../queries/device";
 import { DateInput } from "@mantine/dates";
 import { notify } from "@utils/helpers";
@@ -19,24 +20,76 @@ import {
     Box,
     Textarea,
     Skeleton,
-    Select
+    MultiSelect,
+    Checkbox,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useSearch } from "@tanstack/react-router";
 
 const UpdateMembers = () => {
 
-    const { memberId } = useParams({ strict: false });
+    const search = useSearch({ from: '/members/member-layout' });
+    const memberId = search?.memberId || null;
     const { data, isLoading } = useFetchMemberById(memberId);
+    const { data: unlinkedDevices = [], isLoading: unlinkedLoading } = useFetchUnlinkedDevice(memberId);
     const member = data?.member ?? {};
-    const memberToDevice = member?.member_to_device ?? {}
-    const deviceLinked = memberToDevice?.device ?? {}
+    const memberTodevice = member?.member_to_device ?? {};
+    const device = memberTodevice?.device ?? {};
+    const deleteDeviceMutation = useDeleteMemberFromDevice();
+    const queryClient = useQueryClient()
 
-    //gets all devices
-    const { data: devices = [], isError, error } = useFetchDevices();
-    const deviceOptions = devices.map(device => ({
-        value: String(device.id),
-        label: device.device_name,
-    }));
+
+    const [selectedDevices, setSelectedDevices] = useState([]);
+    const [deviceAssignments, setDeviceAssignments] = useState({});
+
+    const handleDeviceChange = (selectedDevices) => {
+        form.setFieldValue("deviceId", selectedDevices);
+
+        // Add new devices with default values
+        const updatedAssignments = { ...deviceAssignments };
+        selectedDevices.forEach(deviceId => {
+            if (!updatedAssignments[deviceId]) {
+                updatedAssignments[deviceId] = { card: 0, finger_print: 0, face_id: 0 };
+            }
+        });
+
+        // Remove unselected devices
+        Object.keys(updatedAssignments).forEach(deviceId => {
+            if (!selectedDevices.includes(deviceId)) {
+                delete updatedAssignments[deviceId];
+            }
+        });
+
+        setDeviceAssignments(updatedAssignments);
+    };
+
+    const toggleDevice = (deviceId) => {
+        setSelectedDevices((prev) =>
+            prev.includes(deviceId) ? prev.filter(id => id !== deviceId) : [...prev, deviceId]
+        );
+    };
+
+    {/*handles bulk deletion and single delteion */ }
+    const handleBulkDelete = () => {
+        if (selectedDevices.length === 0) return;
+
+        deleteDeviceMutation.mutate({
+            member_id: memberId,
+            device_ids: selectedDevices
+        }, {
+            onSuccess: () => setSelectedDevices([]) // clear selection
+        });
+    };
+
+    {/*get the unlinked devices*/ }
+
+    const deviceOptions = Array.isArray(unlinkedDevices)
+        ? unlinkedDevices.map(device => ({
+            value: String(device.id),        // MultiSelect requires string values
+            label: device.device_name || "Unnamed Device",
+        }))
+        : [];
+
 
 
 
@@ -45,6 +98,8 @@ const UpdateMembers = () => {
         isLoading: imageLoading,
     } = useFetchMemberImage(member.image)
     const imageUrl = memberImageBlob ? URL.createObjectURL(memberImageBlob) : null;
+
+
 
     const [profileImage, setProfileImage] = useState(ProfilePlaceholder);
     const fileInputRef = useRef(null);
@@ -59,7 +114,7 @@ const UpdateMembers = () => {
             designation: '',
             address: '',
             image: '',
-            deviceId:'',
+            deviceId: '',
         },
         validate: {
             name: (value) => (value.length < 1 ? 'Name is required' : null),
@@ -94,8 +149,8 @@ const UpdateMembers = () => {
                 designation: member.designation || "",
                 address: member.address || "",
                 image: member.image || "",
-                deviceId: deviceLinked?.id ? String(deviceLinked.id) : "",
-            
+
+
             });
 
             if (memberImageBlob) {
@@ -124,9 +179,9 @@ const UpdateMembers = () => {
         formData.append("address", values.address || "");
         formData.append("date_of_birth", values.dateOfBirth || "");
         formData.append("image", values.image || "");
-        formData.append("deviceId",values.deviceId || "");
 
-        console.log(formData.get("image"));
+
+
 
         addMemberMutation.mutate(formData, {
             onSuccess: (data) => {
@@ -156,6 +211,43 @@ const UpdateMembers = () => {
     const handleImageClick = () => {
         fileInputRef.current?.click();
     };
+
+
+
+
+    const assignDeviceMutation = useAssignDevice();
+    const handleAssignDevices = () => {
+        if (!form.values.deviceId || form.values.deviceId.length === 0) return;
+
+        const formData = new FormData();
+        formData.append("member_id", memberId);
+
+        // Device assignments — send 0/1 like in Add Member
+        form.values.deviceId.forEach((id, index) => {
+            const assign = deviceAssignments[id] || {};
+            formData.append(`device_assignments[${index}][device_id]`, id);
+            formData.append(`device_assignments[${index}][card]`, assign.card || 0);
+            formData.append(`device_assignments[${index}][finger_print]`, assign.finger_print || 0);
+            formData.append(`device_assignments[${index}][face_id]`, assign.face_id || 0);
+        });
+
+        // Call mutation
+        assignDeviceMutation.mutate(formData, {
+            onSuccess: (data) => {
+                notify({
+                    title: "Success",
+                    message: data.message || "Devices assigned successfully",
+                    iconType: "success",
+                });
+
+                // Reset selection
+                form.setFieldValue("deviceId", []);
+                setDeviceAssignments({});
+                queryClient.invalidateQueries(['unlinkedDevice', memberId]);
+            },
+        });
+    };
+
 
     return (
         <Paper p="xl">
@@ -266,15 +358,7 @@ const UpdateMembers = () => {
                                         leftSection={<IconBriefcase size={18} />}
                                         {...form.getInputProps("designation")} />
 
-                                    <Select
-                                        label="Select Device"
-                                        withAsterisk
-                                        placeholder="Choose a device"
-                                        data={deviceOptions}
-                                        leftSectionPointerEvents="none"
-                                        leftSection={<IconUser size={18} />}
-                                        {...form.getInputProps("deviceId")}
-                                    />
+
 
                                     <Box mt="sm" style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <Button type="submit">Update</Button>
@@ -286,6 +370,140 @@ const UpdateMembers = () => {
 
                 </Grid>
             </form>
+
+            {/*deleting user from device */}
+            <Group gap="sm" mt={100} align="center">
+                <IconTrash size={28} />
+                <Title order={2}>Remove Member</Title>
+            </Group>
+
+
+            <Divider my="md" />
+            <Title order={4} mb="sm" c="var(--app-primary-color)">Linked Devices</Title>
+            <Stack spacing="sm">
+                {Array.isArray(memberTodevice) &&
+                    memberTodevice.map((map) => (
+                        <Checkbox
+                            variant="outline"
+                            key={map.device_id}
+                            label={<span style={{ cursor: "pointer" }}>{map.device?.device_name || "Unnamed Device"}</span>}
+                            checked={selectedDevices.includes(map.device_id)}
+                            onChange={() => toggleDevice(map.device_id)}
+                        />
+                    ))}
+                <Box w={400}>
+                    <Box mt="sm" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                            color="red"
+                            leftSection={<IconTrash size={16} />}
+                            style={{ width: 'fit-content' }}
+                            disabled={selectedDevices.length === 0}
+                            onClick={handleBulkDelete}
+                        >
+                            Remove
+                        </Button>
+                    </Box>
+                </Box>
+
+            </Stack>
+
+
+            {/*deleting user from device */}
+            <Group gap="sm" mt={100} align="center">
+                <IconPlus size={28} />
+                <Title order={2}>Add To Device</Title>
+            </Group>
+
+
+            <Divider my="md" />
+
+            <Box w={400}>
+                <MultiSelect
+                    label="Select Device"
+                    withAsterisk
+                    placeholder="Choose a device"
+                    data={deviceOptions}
+                    value={form.values.deviceId || []}
+                    onChange={(val) => form.setFieldValue("deviceId", val)}
+                    leftSectionPointerEvents="none"
+                    leftSection={<IconDeviceDesktop size={18} />}
+                    disabled={unlinkedLoading}
+                />
+
+                {form.values.deviceId.length > 0 && (
+                    <Box mt="md">
+                        {form.values.deviceId.map(deviceId => {
+                            const device = unlinkedDevices.find(d => String(d.id) === String(deviceId));
+                            return (
+                                <Box key={deviceId} mb="sm" p="sm" style={{ border: '1px solid #ccc', borderRadius: 8 }}>
+                                    <strong>{device?.device_name}</strong>
+                                    <Group mt="xs">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={deviceAssignments[deviceId]?.card === 1}
+                                                onChange={(e) =>
+                                                    setDeviceAssignments(prev => ({
+                                                        ...prev,
+                                                        [deviceId]: {
+                                                            ...prev[deviceId],
+                                                            card: e.target.checked ? 1 : 0
+                                                        }
+                                                    }))
+                                                }
+                                            /> Card
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={deviceAssignments[deviceId]?.finger_print === 1}
+                                                onChange={(e) =>
+                                                    setDeviceAssignments(prev => ({
+                                                        ...prev,
+                                                        [deviceId]: {
+                                                            ...prev[deviceId],
+                                                            finger_print: e.target.checked ? 1 : 0
+                                                        }
+                                                    }))
+                                                }
+                                            /> Finger
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={deviceAssignments[deviceId]?.face_id === 1}
+                                                onChange={(e) =>
+                                                    setDeviceAssignments(prev => ({
+                                                        ...prev,
+                                                        [deviceId]: {
+                                                            ...prev[deviceId],
+                                                            face_id: e.target.checked ? 1 : 0
+                                                        }
+                                                    }))
+                                                }
+                                            /> Face
+                                        </label>
+                                    </Group>
+                                </Box>
+                            );
+                        })}
+                    </Box>
+                )}
+
+                <Box mt="sm" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button
+                        color="green"
+                        leftSection={<IconPlus size={16} />}
+                        disabled={form.values.deviceId.length === 0}
+                        onClick={handleAssignDevices}
+                    >
+                        Add To Device
+                    </Button>
+                </Box>
+            </Box>
+
+
+
         </Paper>
     );
 };

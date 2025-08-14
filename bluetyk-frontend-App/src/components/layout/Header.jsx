@@ -11,7 +11,7 @@ import {
     Drawer,
     Stack,
 } from "@mantine/core";
-import logo from "../../assets/images/bluewhyte_logo.png";
+import logo from "../../assets/images/logo.png";
 import { useMediaQuery } from "@mantine/hooks";
 import {
     IconPower,
@@ -23,48 +23,36 @@ import {
     IconChartBar,
     IconUserPlus,
     IconChevronDown,
-    IconDots
+    IconApps,
+    IconDeviceDesktop
 } from "@tabler/icons-react";
 import { useAuthStore } from "../../config/authStore";
 import { useLogout } from "../../queries/auth";
 import { useRef, useState, useEffect } from "react";
-import { useDisclosure } from '@mantine/hooks';
-
 
 export default function Header({ toggle, opened }) {
-    const [openedDrawer, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
     const routerState = useRouterState();
     const currentPath = routerState.location.pathname;
     const logout = useLogout();
     const menuScrollRef = useRef();
     const authenticatedUser = useAuthStore.getState();
     const theme = useMantineTheme();
+
     const isMobile = useMediaQuery("(max-width: 768px)");
-    const [underlineX, setUnderlineX] = useState(0);
-    const [underlineWidth, setUnderlineWidth] = useState(0);
+    const isTablet = useMediaQuery("(max-width: 1024px)");
+
+
 
     const navLinks = [
         { label: "Dashboard", to: "/dashboard", icon: IconHome },
-        { label: "Member", to: "/member/add-member", icon: IconUserPlus },
-        { label: "Settings", to: "/settings", icon: IconSettings },
-        { label: "Users", to: "/users", icon: IconUsers },
-        { label: "Analytics", to: "/analytics", icon: IconChartBar },
-
-
+        { label: "Member", to: "/members/member-layout", icon: IconUserPlus },
+        { label: "Device", to: "/device/device-layout", icon: IconDeviceDesktop },
+        { label: "Users", to: "/users/user-layout", icon: IconUsers },
+        { label: "Attendance", to: "/attendance/view-attendence", icon: IconChartBar },
+        { label: "More", icon: IconApps, isMore: true },
     ];
 
-    useEffect(() => {
-        const raf = requestAnimationFrame(() => {
-            const activeEl = document.querySelector(".nav-link.active");
-            if (activeEl) {
-                const { offsetLeft, offsetWidth } = activeEl;
-                setUnderlineX(offsetLeft);
-                setUnderlineWidth(offsetWidth);
-            }
-        });
 
-        return () => cancelAnimationFrame(raf);
-    }, [currentPath, isMobile]);
 
     const handleLogout = () => logout.mutate();
 
@@ -84,51 +72,116 @@ export default function Header({ toggle, opened }) {
             >
                 {/* Logo */}
                 <Box style={{ flexShrink: 0 }}>
-                    <Image src={logo} radius="sm" h={55} w="auto" fit="contain" />
+                    <Image src={logo} radius="sm" h={155} w="auto" fit="contain" />
                 </Box>
 
                 {/* Navigation */}
                 {!isMobile && (
-                    <Box style={{ position: "relative", flex: 1, overflow: "hidden" }}>
+                    <Box
+                        style={{
+                            position: "relative",
+                            flex: 1,
+                            overflow: "hidden",
+                            maxWidth: "100%",
+                        }}
+                    >
                         <Flex
-                            gap={40}
+                            gap={28}
                             justify="center"
                             ref={menuScrollRef}
+                            wrap="nowrap"
                             style={{
                                 minWidth: 0,
-                                overflowX: "auto",
-                                position: "relative",
+                                overflowX: isTablet ? "auto" : "visible",
                                 paddingBottom: 4,
+                                scrollbarWidth: "none", // Firefox
+                                msOverflowStyle: "none", // IE
                             }}
+                            className="no-scrollbar"
                         >
                             {navLinks.map((link) => {
                                 const isActive = currentPath === link.to;
                                 const defaultColor = isActive ? theme.colors.blue[6] : "inherit";
                                 const hoverColor = theme.colors.blue[7];
+
+                                const commonStyles = {
+                                    fontSize: "clamp(14px, 1.2vw, 18px)",
+                                    fontWeight: 600,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "6px",
+                                    textDecoration: "none",
+                                    color: defaultColor,
+                                    padding: "4px 8px",
+                                    position: "relative",
+                                    cursor: "pointer",
+                                    transition: "color 0.3s ease",
+                                    whiteSpace: "nowrap",
+                                };
+
+                                if (link.isMore) {
+                                    return (
+                                        <Menu
+                                            shadow="sm"
+                                            width={200}
+                                            position="bottom-end"
+                                            withArrow
+                                            key="more"
+                                        >
+                                            <Menu.Target>
+                                                <Box
+                                                    style={commonStyles}
+                                                    onMouseEnter={(e) =>
+                                                        (e.currentTarget.style.color = hoverColor)
+                                                    }
+                                                    onMouseLeave={(e) =>
+                                                        (e.currentTarget.style.color = defaultColor)
+                                                    }
+                                                >
+                                                    <link.icon size={22} />
+                                                    {!isTablet && link.label}
+                                                </Box>
+                                            </Menu.Target>
+                                            <Menu.Dropdown>
+                                                <Menu.Label>More</Menu.Label>
+                                                <Menu.Item
+                                                    leftSection={<IconUser size={18} />}
+                                                    component={Link}
+                                                    to="/profile"
+                                                >
+                                                    Reports
+                                                </Menu.Item>
+                                                <Menu.Item leftSection={<IconSettings size={18} />}>
+                                                    Attendance
+                                                </Menu.Item>
+                                                <Menu.Divider />
+                                                <Menu.Item
+                                                    color="green"
+                                                    leftSection={<IconUser size={18} />}
+                                                >
+                                                    Users
+                                                </Menu.Item>
+                                            </Menu.Dropdown>
+                                        </Menu>
+                                    );
+                                }
+
                                 return (
                                     <Box
                                         key={link.to}
                                         component={Link}
                                         to={link.to}
                                         className={`nav-link ${isActive ? "active" : ""}`}
-                                        style={{
-                                            fontSize: "18px",
-                                            fontWeight: 600,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "8px",
-                                            textDecoration: "none",
-                                            color: defaultColor,
-                                            padding: "4px 8px",
-                                            position: "relative",
-                                            transition: "color 0.3s ease"
-                                        }}
-                                        onMouseEnter={
-                                            (e) => (e.currentTarget.style.color = hoverColor)}
-                                        onMouseLeave={
-                                            (e) => (e.currentTarget.style.color = defaultColor)}
+                                        style={commonStyles}
+                                        onMouseEnter={(e) =>
+                                            (e.currentTarget.style.color = hoverColor)
+                                        }
+                                        onMouseLeave={(e) =>
+                                            (e.currentTarget.style.color = defaultColor)
+                                        }
                                     >
-                                        <link.icon size={25} /> {link.label}
+                                        <link.icon size={22} />
+                                        {!isTablet && link.label}
                                     </Box>
                                 );
                             })}
@@ -136,90 +189,73 @@ export default function Header({ toggle, opened }) {
                     </Box>
                 )}
 
-                {/* Profile & Icons */}
-                <Flex gap="md" align="center" style={{ flexShrink: 0 }}>
-                    <Text style={{fontSize: "18px",fontWeight: 600,}}>More</Text>
-                    <Drawer
-                        opened={openedDrawer}
-                        onClose={closeDrawer}
-                        position="top"
-                        size="50%"
-                        padding="md"
-                        title="More Options"
-                    >
-                        <Stack>
-                            <Text component={Link} to="/settings">⚙️ Settings</Text>
-                            <Text component={Link} to="/help">❓ Help</Text>
-                            <Text component={Link} to="/about">ℹ️ About</Text>
-                        </Stack>
-                    </Drawer>
-                    <ActionIcon variant="light" color="blue" size="lg" radius="xl">
-                        <IconBell size={20} className="text-blue-600" />
-                    </ActionIcon>
 
-                    <Menu shadow="sm" width={200} position="bottom-end" withArrow>
-                        <Menu.Target>
-                            <Flex align="center" gap="sm" className="cursor-pointer p-1">
-                                <Box
-                                    style={{
-                                        width: 35,
-                                        height: 35,
-                                        borderRadius: "50%",
-                                        backgroundColor: "var(--app-primary-color)",
-                                        color: "white",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        fontWeight: 600,
-                                        fontSize: 20,
-                                        textTransform: "uppercase",
-                                    }}
-                                >
-                                    {authenticatedUser.user?.name?.charAt(0) || "B"}
-                                </Box>
-                                <Box visibleFrom="sm">
-                                    <Text size="md" fw={800} mb={-4}>
-                                        {authenticatedUser.user?.name || "Basith"}
-                                    </Text>
-                                    <Text
-                                        size="sm"
-                                        c="dimmed"
+                {/* Profile & Icons */}
+                <Flex gap="xl" align="center" style={{ flexShrink: 0 }}>
+                    {!isMobile && (
+                        <Menu shadow="sm" width={200} position="bottom-end" withArrow>
+                            <Menu.Target>
+                                <Flex align="center" gap="sm" className="cursor-pointer p-1">
+                                    <Box
                                         style={{
-                                            whiteSpace: "nowrap",
-                                            textOverflow: "ellipsis",
-                                            overflow: "hidden",
-                                            maxWidth: "160px",
+                                            width: 35,
+                                            height: 35,
+                                            borderRadius: "50%",
+                                            backgroundColor: "var(--app-primary-color)",
+                                            color: "white",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            fontWeight: 600,
+                                            fontSize: 20,
+                                            textTransform: "uppercase",
                                         }}
                                     >
-                                        {authenticatedUser.user?.email || "admin@gmail.com"}
-                                    </Text>
-                                </Box>
-                                <IconChevronDown size={20} stroke={2.5} />
-                            </Flex>
-                        </Menu.Target>
-                        <Menu.Dropdown>
-                            <Menu.Label>Account</Menu.Label>
-                            <Menu.Item
-                                leftSection={<IconUser size={18} />}
-                                component={Link}
-                                to="/profile"
-                            >
-                                Profile
-                            </Menu.Item>
-                            <Menu.Item leftSection={<IconSettings size={18} />}>
-                                Settings
-                            </Menu.Item>
-                            <Menu.Divider />
-                            <Menu.Item
-                                color="red"
-                                leftSection={<IconPower size={18} />}
-                                onClick={handleLogout}
-                            >
-                                Logout
-                            </Menu.Item>
-                        </Menu.Dropdown>
-                    </Menu>
-
+                                        {authenticatedUser.user?.name?.charAt(0) || "B"}
+                                    </Box>
+                                    <Box visibleFrom="sm">
+                                        <Text size="md" fw={800} mb={-4}>
+                                            {authenticatedUser.user?.name || "Basith"}
+                                        </Text>
+                                        <Text
+                                            size="sm"
+                                            c="dimmed"
+                                            style={{
+                                                whiteSpace: "nowrap",
+                                                textOverflow: "ellipsis",
+                                                overflow: "hidden",
+                                                maxWidth: "160px",
+                                            }}
+                                        >
+                                            {authenticatedUser.user?.email || "admin@gmail.com"}
+                                        </Text>
+                                    </Box>
+                                    <IconChevronDown size={20} stroke={2.5} />
+                                </Flex>
+                            </Menu.Target>
+                            <Menu.Dropdown>
+                                <Menu.Label>Account</Menu.Label>
+                                <Menu.Item
+                                    leftSection={<IconUser size={18} />}
+                                    component={Link}
+                                    to="/profile"
+                                >
+                                    Profile
+                                </Menu.Item>
+                                <Menu.Item leftSection={<IconSettings size={18} />}>
+                                    Settings
+                                </Menu.Item>
+                                <Menu.Divider />
+                                <Menu.Item
+                                    color="red"
+                                    leftSection={<IconPower size={18} />}
+                                    onClick={handleLogout}
+                                >
+                                    Logout
+                                </Menu.Item>
+                            </Menu.Dropdown>
+                        </Menu>
+                    )}
                     <Burger
                         size="sm"
                         hiddenFrom="md"
@@ -230,21 +266,6 @@ export default function Header({ toggle, opened }) {
                 </Flex>
             </Flex>
 
-            {/* Moved underline bar to the very bottom of the header */}
-            {!isMobile && (
-                <Box
-                    style={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: underlineX + 150, // +150 accounts for the logo width and padding
-                        width: underlineWidth,
-                        height: 3,
-                        backgroundColor: theme.colors.blue[6],
-                        borderRadius: 2,
-                        transition: "left 0.3s ease, width 0.3s ease",
-                    }}
-                />
-            )}
         </Box>
     );
 }

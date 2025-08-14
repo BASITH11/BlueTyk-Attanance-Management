@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Device;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Device;
+use App\Models\DeviceType;
+use App\Models\Locations;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Route;
@@ -16,13 +18,14 @@ class DeviceController extends Controller
     {
         Route::controller(self::class)
             ->prefix('device')
-            ->middleware(['auth:sanctum','check.user'])
+            ->middleware(['auth:sanctum', 'check.user', 'check.subscription'])
             ->group(function () {
                 Route::post('/add-device', 'store')->name('device.store');
                 Route::get('/get-device', 'index')->name('device.index');
                 Route::delete('/delete-device', 'destroy')->name('device.destroy');
                 Route::get('/get-deviceById', 'show')->name('device.show');
-                Route::put('/update-device','update')->name('device.update');
+                Route::put('/update-device', 'update')->name('device.update');
+                Route::get('/device-attributes', 'getDeviceAttributes')->name('device.getAttributes');
             });
     }
 
@@ -37,7 +40,9 @@ class DeviceController extends Controller
             $validator = Validator::make($request->all(), [
                 'device_name' => 'required|string|max:255',
                 'device_serial_no' => 'required|string|max:255',
-                                                              // 0 for inactive, 1 for active
+                'location_id' => 'required|integer',
+                'device_type_id' => 'required|integer',
+
             ]);
 
             if ($validator->fails()) {
@@ -52,6 +57,8 @@ class DeviceController extends Controller
             $device = Device::create([
                 'device_name' => $request->device_name,
                 'device_serial_no' => $request->device_serial_no,
+                'location_id' => $request->location_id,
+                'device_type_id' => $request->device_type_id,
             ]);
 
             return response()->json([
@@ -77,7 +84,7 @@ class DeviceController extends Controller
     {
         try {
 
-            $devices = Device::all();
+            $devices = Device::with(['deviceToDeviceType', 'deviceToLocation'])->get();
             return response()->json([
                 'status' => true,
                 'message' => "device retrieved successfully",
@@ -135,7 +142,7 @@ class DeviceController extends Controller
                     'message' => 'Device ID is required',
                 ], 400);
             }
-            $device = Device::findOrFail($id);
+            $device = Device::with('deviceToLocation', 'deviceToDeviceType')->findOrFail($id);
             return response()->json([
                 'status' => true,
                 'message' => 'Device retrieved successfully',
@@ -161,6 +168,8 @@ class DeviceController extends Controller
                 'id' => 'required|exists:device,id',
                 'device_name' => 'required|string|max:255|unique:device,device_name,' . $request->id,
                 'device_serial_no' => 'required|string|max:255|unique:device,device_serial_no,' . $request->id,
+                'location_id' => 'required|integer',
+                'device_type_id' => 'required|integer',
             ]);
 
             if ($validator->fails()) {
@@ -175,6 +184,8 @@ class DeviceController extends Controller
 
             $device->device_name = $request->device_name;
             $device->device_serial_no = $request->device_serial_no;
+            $device->location_id = $request->location_id;
+            $device->device_type_id = $request->device_type_id;
 
             $device->save();
 
@@ -187,6 +198,34 @@ class DeviceController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'error Updating device',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    /**
+     * function to get all the device_types
+     */
+    public function getDeviceAttributes()
+    {
+        try {
+
+            $deviceType = DeviceType::all();
+            $locations = Locations::all();
+
+
+            return response()->json([
+                'status' => true,
+                'data' => [
+                    'device_types' => $deviceType,
+                    'locations' => $locations,
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'error getting deviceAttributes',
                 'error' => $e->getMessage(),
             ], 500);
         }

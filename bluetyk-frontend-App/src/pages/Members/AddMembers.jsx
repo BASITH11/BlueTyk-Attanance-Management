@@ -17,7 +17,8 @@ import {
     Grid,
     Box,
     Textarea,
-    Select
+    Select,
+    MultiSelect
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
@@ -25,8 +26,32 @@ const AddMembers = () => {
 
     const [profileImage, setProfileImage] = useState(ProfilePlaceholder);
     const fileInputRef = useRef(null);
+    const [deviceAssignments, setDeviceAssignments] = useState({});
+
+    const handleDeviceChange = (selectedDevices) => {
+        form.setFieldValue("deviceId", selectedDevices);
+
+        // Add new devices with default values
+        const updatedAssignments = { ...deviceAssignments };
+        selectedDevices.forEach(deviceId => {
+            if (!updatedAssignments[deviceId]) {
+                updatedAssignments[deviceId] = { card: 0, finger_print: 0, face_id: 0 };
+            }
+        });
+
+        // Remove unselected devices
+        Object.keys(updatedAssignments).forEach(deviceId => {
+            if (!selectedDevices.includes(deviceId)) {
+                delete updatedAssignments[deviceId];
+            }
+        });
+
+        setDeviceAssignments(updatedAssignments);
+    };
 
     const { data: devices = [], isLoading, isError, error } = useFetchDevices();
+
+
     const deviceOptions = devices.map(device => ({
         value: String(device.id),
         label: device.device_name,
@@ -42,19 +67,18 @@ const AddMembers = () => {
             designation: '',
             address: '',
             image: '',
-            deviceId:'',
+            deviceId: [],
         },
         validate: {
             name: (value) => (value.length < 1 ? 'Name is required' : null),
             phoneNumber: (value) => {
                 if (!/^\d+$/.test(value)) return 'Phone number must contain only numbers';
-                if (value.length < 10) return 'Phone number is invalid';
+                // if (value.length < 10) return 'Phone number is invalid';
                 return null;
             },
 
             cardNumber: (value) => {
                 if (!/^\d+$/.test(value)) return 'Card number must contain only numbers';
-                if (value.length < 1) return 'Card number is required';
                 return null;
             },
             dateOfBirth: (value) => new Date(value) >= new Date() ? 'Date of birth must be in the past' : null,
@@ -78,8 +102,15 @@ const AddMembers = () => {
         formData.append("address", values.address || "");
         formData.append("date_of_birth", values.dateOfBirth || "");
         formData.append("image", values.image || "");
-        formData.append("deviceId",values.deviceId|| "");
 
+        // Device assignments
+        values.deviceId.forEach((id, index) => {
+            const assign = deviceAssignments[id] || {};
+            formData.append(`device_assignments[${index}][device_id]`, id);
+            formData.append(`device_assignments[${index}][card]`, assign.card || 0);
+            formData.append(`device_assignments[${index}][finger_print]`, assign.finger_print || 0);
+            formData.append(`device_assignments[${index}][face_id]`, assign.face_id || 0);
+        });
 
 
         addMemberMutation.mutate(formData, {
@@ -115,12 +146,6 @@ const AddMembers = () => {
 
     return (
         <Paper p="xl">
-            <Group gap="sm" mb="sm" align="center">
-                <IconUserPlus size={28} />
-                <Title order={2}>Add Member</Title>
-            </Group>
-
-            <Divider my="md" />
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
                 <Grid>
@@ -183,12 +208,13 @@ const AddMembers = () => {
                                 leftSection={<IconCreditCard size={18} />}
                                 {...form.getInputProps("cardNumber")}
                             />
-                            <DateInput
-                                label="Date of Birth"
+                            <Textarea
+                                label="Address"
                                 leftSectionPointerEvents="none"
-                                leftSection={<IconCalendar size={18} />}
-                                {...form.getInputProps("dateOfBirth")}
+                                leftSection={<IconMapPin size={18} />}
+                                {...form.getInputProps("address")}
                             />
+
 
 
                         </Stack>
@@ -196,11 +222,11 @@ const AddMembers = () => {
 
                     <Grid.Col span={{ base: 12, md: 6, lg: 4 }}>
                         <Stack spacing="md">
-                            <Textarea
-                                label="Address"
+                            <DateInput
+                                label="Date of Birth"
                                 leftSectionPointerEvents="none"
-                                leftSection={<IconMapPin size={18} />}
-                                {...form.getInputProps("address")}
+                                leftSection={<IconCalendar size={18} />}
+                                {...form.getInputProps("dateOfBirth")}
                             />
 
                             <TextInput
@@ -210,7 +236,8 @@ const AddMembers = () => {
                                 {...form.getInputProps("designation")}
                             />
 
-                            <Select
+
+                            <MultiSelect
                                 label="Select Device"
                                 withAsterisk
                                 placeholder="Choose a device"
@@ -219,6 +246,67 @@ const AddMembers = () => {
                                 leftSection={<IconUser size={18} />}
                                 {...form.getInputProps("deviceId")}
                             />
+
+                            {form.values.deviceId.length > 0 && (
+                                <Box mt="md">
+                                    {form.values.deviceId.map(deviceId => {
+                                        const device = devices.find(d => String(d.id) === String(deviceId));
+                                        return (
+                                            <Box key={deviceId} mb="sm" p="sm" style={{ border: '1px solid #ccc', borderRadius: 8 }}>
+                                                <strong>{device?.device_name}</strong>
+                                                <Group mt="xs">
+                                                    <label>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={deviceAssignments[deviceId]?.card === 1}
+                                                            onChange={(e) =>
+                                                                setDeviceAssignments(prev => ({
+                                                                    ...prev,
+                                                                    [deviceId]: {
+                                                                        ...prev[deviceId],
+                                                                        card: e.target.checked ? 1 : 0
+                                                                    }
+                                                                }))
+                                                            }
+                                                        /> Card
+                                                    </label>
+                                                    <label>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={deviceAssignments[deviceId]?.finger_print === 1}
+                                                            onChange={(e) =>
+                                                                setDeviceAssignments(prev => ({
+                                                                    ...prev,
+                                                                    [deviceId]: {
+                                                                        ...prev[deviceId],
+                                                                        finger_print: e.target.checked ? 1 : 0
+                                                                    }
+                                                                }))
+                                                            }
+                                                        /> Finger
+                                                    </label>
+                                                    <label>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={deviceAssignments[deviceId]?.face_id === 1}
+                                                            onChange={(e) =>
+                                                                setDeviceAssignments(prev => ({
+                                                                    ...prev,
+                                                                    [deviceId]: {
+                                                                        ...prev[deviceId],
+                                                                        face_id: e.target.checked ? 1 : 0
+                                                                    }
+                                                                }))
+                                                            }
+                                                        /> Face
+                                                    </label>
+                                                </Group>
+                                            </Box>
+                                        );
+                                    })}
+                                </Box>
+                            )}
+
 
                             <Box mt="sm" style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                 <Button type="submit">Submit</Button>

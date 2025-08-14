@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->string('designation')->nullable();
-            $table->integer('device_user_id')->nullable();
             $table->enum('status',['pending','success','deleted'])->default('pending');
             $table->string('source')->default('app');
             $table->timestamps();

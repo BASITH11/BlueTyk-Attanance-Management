@@ -7,9 +7,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Members;
 use App\Models\Device;
-use App\Models\MemberToDevice;
 use App\Models\CommandQueues;
 use App\Models\DeviceUserLogs;
+use App\Models\EntryType;
+use App\Models\MemberToDevice;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Route;
@@ -25,7 +26,7 @@ class MembersController extends Controller
     {
         Route::controller(self::class)
             ->prefix('members')
-            ->middleware(['auth:sanctum', 'check.user'])
+            ->middleware(['auth:sanctum', 'check.user', 'check.subscription'])
             ->group(function () {
                 Route::post('/add-member', 'store')->name('members.store');
                 Route::get('/get-members', 'index')->name('members.index');
@@ -33,8 +34,13 @@ class MembersController extends Controller
                 Route::get('/get-memberById', 'show')->name('members.show');
                 Route::get('/get-member-image', 'getMemberImage')->name('members.getMemberImage');
                 Route::put('/update-member', 'update')->name('members.update');
+                Route::delete('/delte-from-device', 'destroyFromDevice')->name('member.deleteFromdevice');
+                Route::get('/get-unlinked-devices', 'getUnlinkedDevices')->name('member.unlinkedDevice');
+                Route::post('/assign-device','assignDevices')->name('member.assignDevice');
             });
     }
+
+
 
     /**
      * function for creating a member
@@ -46,24 +52,19 @@ class MembersController extends Controller
             // Validate input
             $validator = Validator::make($request->all(), [
                 'name'          => 'required|string|max:255',
-                'phone_no' => [
-                    'required',
-                    'string',
-                    'min:10',
-                    'max:12',
-                    Rule::unique('members')->whereNull('deleted_at'),
-                ],
-
-                'card_no' => [
-                    'required',
-                    'string',
-                    Rule::unique('members')->whereNull('deleted_at'),
-                ],
+                'phone_no'      => 'nullable|string|min:10|max:12',
+                'card_no'       => 'nullable|string',
                 'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
                 'address'       => 'nullable|string|max:500',
                 'date_of_birth' => 'nullable|date|before:today',
                 'designation'   => 'nullable|string|max:255',
-                'deviceId'     => 'nullable|integer|exists:device,id',
+
+                // New device assignments validation
+                'device_assignments'                       => 'nullable|array',
+                'device_assignments.*.device_id'           => 'required|integer|exists:device,id',
+                'device_assignments.*.card'                => 'required|boolean',
+                'device_assignments.*.finger_print'        => 'required|boolean',
+                'device_assignments.*.face_id'             => 'required|boolean',
             ]);
 
             if ($validator->fails()) {
@@ -74,27 +75,27 @@ class MembersController extends Controller
                 ], 422);
             }
 
-            //sending command to get the all user from the device 
-            if ($request->filled('deviceId')) {
-
-                $device = Device::find($request->deviceId);
-                if ($device->device_serial_no) {
-                    CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
+            // Send command to get all users from selected devices
+            if ($request->filled('device_assignments') && is_array($request->device_assignments)) {
+                foreach ($request->device_assignments as $assignment) {
+                    $device = Device::find($assignment['device_id']);
+                    if ($device && $device->device_serial_no) {
+                        CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
+                    }
                 }
             }
 
-
-
+            // Handle image upload
             $imagePath = null;
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $filename = 'member_' . $request->card_no . '.' . $file->getClientOriginalExtension();
+                $filename = 'member_' . time() . '.' . $file->getClientOriginalExtension();
                 $file->storeAs('members', $filename);
                 $imagePath = $filename;
             }
 
-            $date_of_birth = \DateTime::createFromFormat('m/d/Y', $request->date_of_birth);
             DB::beginTransaction();
+
             // Create member
             $member = Members::create([
                 'name'          => $request->name,
@@ -102,24 +103,34 @@ class MembersController extends Controller
                 'card_no'       => $request->card_no,
                 'image'         => $imagePath,
                 'address'       => $request->address,
-                'date_of_birth' => $date_of_birth,
+                'date_of_birth' => $request->date_of_birth,
                 'designation'   => $request->designation,
                 'status'        => 'pending',
-                'device_user_id' => null,
-                'source' => 'app',
+                'source'        => 'app',
             ]);
 
-            // After $member is created
-            if ($request->filled('deviceId')) {
-                MemberToDevice::create([
-                    'member_id'   => $member->id,
-                    'device_id'   => $request->deviceId,
-                    'assigned_at' => now(),
-                ]);
+            // Assign devices with individual auth types
+            if ($request->filled('device_assignments') && is_array($request->device_assignments)) {
+                foreach ($request->device_assignments as $assignment) {
+                    $device = Device::find($assignment['device_id']);
+                    if ($device) {
+                        MemberToDevice::create([
+                            'member_id'        => $member->id,
+                            'device_user_id'   => null,
+                            'device_id'        => $device->id,
+                            'device_serial_no' => $device->device_serial_no,
+                            'assigned_at'      => now(),
+                            'card'             => $assignment['card'],
+                            'finger_print'     => $assignment['finger_print'],
+                            'face_id'          => $assignment['face_id'],
+                            'status'           => 'pending',
+                        ]);
+                    }
+                }
             }
 
-
             DB::commit();
+
             return response()->json([
                 'status'  => true,
                 'message' => 'Member created successfully',
@@ -135,13 +146,18 @@ class MembersController extends Controller
         }
     }
 
+
+
+
+
+
     /**
      * function for getting all members
      */
     public function index()
     {
         try {
-            $members = Members::all();
+            $members = Members::with('memberToDevice.device')->get();
             return response()->json([
                 'status'  => true,
                 'message' => 'Members retrieved successfully',
@@ -155,6 +171,13 @@ class MembersController extends Controller
             ], 500);
         }
     }
+
+
+
+
+
+
+
 
     /**
      * function for deleting a member
@@ -173,29 +196,35 @@ class MembersController extends Controller
                     'errors'  => 'validation error',
                 ], 422);
             }
+
             DB::beginTransaction();
-            $member = Members::With(['memberToDevice.device'])->findOrFail($request->id);
 
-            $deviceSerialNo = $member->memberToDevice->device->device_serial_no ?? null;
-            $pin = $member->device_user_id;
+            $member = Members::with(['memberToDevice.device'])->findOrFail($request->id);
 
+            // Loop through all linked devices for this member
+            foreach ($member->memberToDevice as $mtd) {
+                $deviceSerialNo = $mtd->device->device_serial_no ?? null;
+                $pin            = $mtd->device_user_id;
 
-            if ($deviceSerialNo && $pin) {
+                if ($deviceSerialNo && $pin) {
+                    $deleteCommand = "C:" . time() . ":DATA DELETE USERINFO PIN=" . $pin;
 
-                $deleteCommand = "C:" . time() . ":DATA DELETE USERINFO PIN=" . $pin;
+                    CommandQueues::create([
+                        'command'          => $deleteCommand,
+                        'device_serial_no' => $deviceSerialNo,
+                        'sent'             => false,
+                    ]);
 
-                CommandQueues::create([
-                    'command'          => $deleteCommand,
-                    'device_serial_no' => $deviceSerialNo,
-                    'sent'             => false,
-                ]);
+                    // Send "Get All Users" for that device
+                    CommandQueues::sendGetAllUsersCommand($deviceSerialNo);
+                }
             }
 
-            CommandQueues::sendGetAllUsersCommand($deviceSerialNo);
-
+            // Delete the member
             $member->delete();
 
             DB::commit();
+
             return response()->json([
                 'status'  => true,
                 'message' => 'Member deleted successfully',
@@ -209,6 +238,84 @@ class MembersController extends Controller
             ], 500);
         }
     }
+
+
+
+    /**
+     * Delete member from a single device
+     */
+    public function destroyFromDevice(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'member_id'   => 'required|exists:members,id',
+                'device_ids'  => 'required|array|min:1',
+                'device_ids.*' => 'exists:device,id',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $validator->errors()->first(),
+                    'errors'  => 'validation error',
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            foreach ($request->device_ids as $deviceId) {
+                // Find mapping between this member and device
+                $mapping = MemberToDevice::with('device')
+                    ->where('member_id', $request->member_id)
+                    ->where('device_id', $deviceId)
+                    ->first();
+
+                if (!$mapping) {
+                    continue;
+                }
+
+                $deviceSerialNo = $mapping->device->device_serial_no ?? null;
+                $pin            = $mapping->device_user_id;
+
+                if ($deviceSerialNo && $pin) {
+                    $deleteCommand = "C:" . time() . ":DATA DELETE USERINFO PIN=" . $pin;
+
+                    CommandQueues::create([
+                        'command'          => $deleteCommand,
+                        'device_serial_no' => $deviceSerialNo,
+                        'sent'             => false,
+                    ]);
+
+                    // Refresh users for that device
+                    CommandQueues::sendGetAllUsersCommand($deviceSerialNo);
+                }
+
+                // Delete only the mapping
+                $mapping->delete();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Member removed from selected devices successfully',
+            ], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status'  => false,
+                'message' => 'Error removing member from devices',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+
+
+
+
+
 
     /**
      * function for getting a member by id
@@ -244,6 +351,14 @@ class MembersController extends Controller
             ], 500);
         }
     }
+
+
+
+
+
+
+
+
 
 
     /**
@@ -284,6 +399,9 @@ class MembersController extends Controller
         }
     }
 
+
+
+
     /**
      * function for updating a member
      */
@@ -292,15 +410,15 @@ class MembersController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'id'            => 'required|exists:members,id',
-                'name'          => 'required|string|max:255',
-                'phone_no'      => 'required|string|min:10|max:12|unique:members,phone_no,' . $request->id,
-                'card_no'       => 'required|string|unique:members,card_no,' . $request->id,
+                'name'          => 'nullable|string|max:255',
+                'phone_no'      => 'nullable|string|min:10|max:12',
+                'card_no'       => 'nullable|string',
                 'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
                 'address'       => 'nullable|string|max:500',
                 'date_of_birth' => 'nullable|date|before:today',
                 'designation'   => 'nullable|string|max:255',
-                'deviceId'     => 'nullable|exists:device,id',
             ]);
+
             if ($validator->fails()) {
                 return response()->json([
                     'status'  => false,
@@ -311,51 +429,51 @@ class MembersController extends Controller
 
             DB::beginTransaction();
 
-            $member = Members::findOrFail($request->id);
+            // Load member with devices and pivot data
+            $member = Members::with('memberToDevice.device')->findOrFail($request->id);
 
+            // Handle image
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $filename = 'member_' . $member->card_no . '.' . $file->getClientOriginalExtension();
+                $filename = 'member_' . time() . '.' . $file->getClientOriginalExtension();
                 $file->storeAs('members', $filename);
                 $member->image = $filename;
             }
 
-            // Update member
+            // Update fields
             $member->name = $request->name;
             $member->phone_no = $request->phone_no;
             $member->card_no = $request->card_no;
             $member->address = $request->address;
             $member->date_of_birth = $request->date_of_birth;
             $member->designation = $request->designation;
-
             $member->save();
 
-            if ($request->filled('deviceId')) {
-                MemberToDevice::updateOrCreate(
-                    ['member_id' => $member->id], // search condition
-                    ['device_id' => $request->deviceId] // values to insert/update
-                );
+            // Loop through all devices linked to this member
+            foreach ($member->memberToDevice as $mtd) {
+                $deviceUserId = $mtd->device_user_id; // from pivot
+                $deviceSerialNo = $mtd->device->device_serial_no ?? null;
+
+                if ($deviceSerialNo) {
+                    $kv = [
+                        "PIN=$deviceUserId",
+                        "Name={$member->name}",
+                        "Pri=0",
+                        "Card={$member->card_no}",
+                    ];
+
+                    $cmds = "C:" . time() . ":DATA UPDATE USERINFO " . implode("\t", $kv);
+
+                    CommandQueues::create([
+                        'device_serial_no' => $deviceSerialNo,
+                        'command' => $cmds,
+                        'sent' => false,
+                    ]);
+                }
             }
 
-            $device = Device::where('id', $request->deviceId)->first();
-
-            $kv = [
-                "PIN=$member->device_user_id",
-                "Name=$member->name",
-                "Pri=0",
-                "Card=$member->card_no",
-            ];
-
-            $cmds = "C:" . time() . ":DATA UPDATE USERINFO " . implode("\t", $kv);
-
-            CommandQueues::create([
-                'device_serial_no' => $device->device_serial_no,
-                'command' => $cmds,
-                'sent' => false,
-            ]);
-
-
             DB::commit();
+
             return response()->json([
                 'status'  => true,
                 'message' => 'Member updated successfully',
@@ -369,6 +487,117 @@ class MembersController extends Controller
                 'status'  => false,
                 'message' => $e->getMessage(),
                 'error'   => 'Error updating member',
+            ], 500);
+        }
+    }
+
+
+    /**
+     * function to get the unlinked device of an user
+     */
+    public function getUnlinkedDevices(Request $request)
+    {
+
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|exists:members,id',
+            ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $validator->errors()->first(),
+                    'errors'  => 'Validation error',
+                ], 422);
+            }
+
+            $linkedDeviceIds = MemberToDevice::where('member_id', $request->id)
+                ->pluck('device_id')
+                ->toArray();
+
+            $unlinkedDevices = Device::whereNotIn('id', $linkedDeviceIds)->get();
+
+            return response()->json([
+                'status' => true,
+                'data' => $unlinkedDevices,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => $e->getMessage(),
+                'error'   => 'Error updating member',
+            ], 500);
+        }
+    }
+
+
+
+    /**
+     * function to add member to unlinked devices
+     */
+
+    public function assignDevices(Request $request)
+    {
+        try {
+            // Validate input
+            $validator = Validator::make($request->all(), [
+                'member_id' => 'required|integer|exists:members,id',
+                'device_assignments' => 'required|array',
+                'device_assignments.*.device_id' => 'required|integer|exists:device,id',
+                'device_assignments.*.card' => 'required|boolean',
+                'device_assignments.*.finger_print' => 'required|boolean',
+                'device_assignments.*.face_id' => 'required|boolean',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(),
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $member = Members::findOrFail($request->member_id);
+
+            DB::beginTransaction();
+
+            foreach ($request->device_assignments as $assignment) {
+                $device = Device::find($assignment['device_id']);
+                if ($device) {
+                    MemberToDevice::updateOrCreate(
+                        [
+                            'member_id' => $member->id,
+                            'device_id' => $device->id,
+                        ],
+                        [
+                            'device_user_id'   => null,
+                            'device_serial_no' => $device->device_serial_no,
+                            'assigned_at'      => now(),
+                            'card'             => $assignment['card'],
+                            'finger_print'     => $assignment['finger_print'],
+                            'face_id'          => $assignment['face_id'],
+                            'status'           => 'pending',
+                        ]
+                    );
+
+                    // Optionally send command to device to sync users
+                    if ($device->device_serial_no) {
+                        CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Devices assigned successfully',
+            ], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => 'Error assigning devices',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

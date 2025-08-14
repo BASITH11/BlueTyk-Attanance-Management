@@ -2,7 +2,7 @@ import React from "react";
 import { Paper, Title, Group, Divider, Center, Skeleton, Flex, Badge } from "@mantine/core";
 import { IconListDetails, IconEye } from "@tabler/icons-react";
 import DataTable from '@components/layout/DataTable';
-import { useFetchDevices,useDeleteDevice } from "../../queries/device";
+import { useFetchDevices, useDeleteDevice } from "../../queries/device";
 import { useNavigate } from '@tanstack/react-router';
 
 
@@ -13,7 +13,7 @@ const ViewMembers = () => {
 
 
     const { data: devices = [], isLoading, isError, error } = useFetchDevices();
-
+    console.log(devices);
     const { mutate: deleteMutate } = useDeleteDevice();
     const navigate = useNavigate();
 
@@ -21,12 +21,21 @@ const ViewMembers = () => {
     const columns = [
         { accessor: "device_name", label: "Device Name" },
         { accessor: "device_serial_no", label: "Serial Number" },
+        { accessor: "last_seen_at", label: "Last Seen" },
         {
-            accessor: "device_status",
+            accessor: "device_to_device_type.type",
+            label: "Device Type"
+        },
+        {
+            accessor: "device_to_location.location_name",
+            label: "Location"
+        },
+        {
+            accessor: "status",
             label: "Status",
             render: (status) => (
-                <Badge color={status === 1 ? "green" : "red"} variant="light">
-                    {status === 1 ? "Active" : "Inactive"}
+                <Badge color={status === 'online' ? "green" : "red"} variant="light">
+                    {status === 'online' ? "online" : "offline"}
                 </Badge>
             ),
         }
@@ -36,11 +45,6 @@ const ViewMembers = () => {
     if (isLoading) {
         return (
             <Paper p="xl">
-                <Group gap="sm" mb="sm" align="center">
-                    <IconListDetails size={28} />
-                    <Title order={2}>View Devices</Title>
-                </Group>
-                <Divider my="md" />
 
                 {/* Row of Skeletons - Top Row */}
                 <Flex justify="space-between" mb="sm">
@@ -62,7 +66,10 @@ const ViewMembers = () => {
 
 
     const handleEdit = (row) => {
-        navigate({ to: `/device/deviceEdit/${row.id}` });
+        navigate({
+            to: '/device/device-layout',
+            search: { tab: 'edit', deviceId: row.id }
+        });
     };
 
     const handleDelete = (row) => {
@@ -74,17 +81,14 @@ const ViewMembers = () => {
     };
 
     const handleView = (row) => {
-        navigate({ to: `/device/${row.id}` });
+        navigate({
+            to: '/device/device-layout',
+            search: { tab: 'detail', deviceId: row.id }
+        });
     };
-
     return (
         <Paper p="xl">
-            <Group gap="sm" mb="sm" align="center">
-                <IconListDetails size={28} />
-                <Title order={2}>View Devices</Title>
-            </Group>
 
-            <Divider my="md" />
 
             <DataTable
                 data={devices}

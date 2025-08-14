@@ -9,6 +9,8 @@ import { queryClient } from "@config/queryClient";
 
 import { RouterProvider } from "@tanstack/react-router";
 import { router } from "@config/router";
+import SubscriptionDrawer from "./components/layout/SubscriptionDrawer";
+
 
 // Render the app
 const rootElement = document.getElementById("root");

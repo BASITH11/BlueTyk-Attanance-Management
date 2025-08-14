@@ -34,7 +34,7 @@ class DeviceUserLogs extends Model
      */
     public static function updateSuccessStatus()
     {
-        $PendingMembers = Members::With(['memberToDevice.device'])->where('status', 'pending')->get();
+        $PendingMembers = MemberToDevice::With(['member', 'device'])->where('status', 'pending')->get();
 
         foreach ($PendingMembers as $member) {
             $deviceSerialNo = $member->memberToDevice->device->device_serial_no ?? null;
@@ -52,6 +52,27 @@ class DeviceUserLogs extends Model
         }
     }
 
+    /**
+     * function to mark the members as success
+     */
+    public function updateAllSuccess()
+    {
+        // Get all members with status 'pending' and eager load their memberToDevice relation
+        $members = Members::with('memberToDevice')->where('status', 'pending')->get();
+
+        foreach ($members as $member) {
+
+            $allSuccess = $member->memberToDevice->every(function ($device) {
+                return $device->status === 'success';
+            });
+
+            if ($allSuccess && $member->memberToDevice->isNotEmpty()) {
+
+                $member->update(['status' => 'success']);
+            }
+        }
+    }
+
 
 
     /**
@@ -60,23 +81,50 @@ class DeviceUserLogs extends Model
 
     public static function updateDeletedStatus()
     {
-        $deletedMembers = Members::onlyTrashed()->with(['memberToDevice.device'])->get();
+        #Get all soft-deleted members with their device mappings
+        $deletedMembers = Members::onlyTrashed()->with('memberToDevice')->get();
 
         foreach ($deletedMembers as $member) {
-            $deviceSerialNo = $member->memberToDevice->device->device_serial_no ?? null;
-            $deviceUserId = $member->device_user_id ?? 0;
+            $anyDeviceExists = false;
 
-            if ($deviceSerialNo && $deviceUserId) {
-                $exists = self::where('pin', $deviceUserId)
-                    ->where('device_serial_no', $deviceSerialNo)
-                    ->exists();
+            foreach ($member->memberToDevice as $deviceMapping) {
+                $deviceSerialNo = $deviceMapping->device_serial_no;
+                $deviceUserId = $deviceMapping->device_user_id;
 
-                if (!$exists) {
+                if ($deviceSerialNo && $deviceUserId) {
+                    $exists = self::where('pin', $deviceUserId)
+                        ->where('device_serial_no', $deviceSerialNo)
+                        ->exists();
+
+                    if ($exists) {
+                        $anyDeviceExists = true;
+
+                        #If device mapping was marked deleted before, revert it to active
+                        if ($deviceMapping->status === 'deleted') {
+                            $deviceMapping->update(['status' => 'success']);
+                        }
+                    } else {
+                        #Mark device mapping as deleted if missing in logs
+                        if ($deviceMapping->status !== 'deleted') {
+                            $deviceMapping->update(['status' => 'deleted']);
+                        }
+                    }
+                }
+            }
+
+            #Update member status based on device presence
+            if ($anyDeviceExists) {
+                if ($member->status === 'deleted') {
+                    $member->update(['status' => 'success']);
+                }
+            } else {
+                if ($member->status !== 'deleted') {
                     $member->update(['status' => 'deleted']);
                 }
             }
         }
     }
+
 
 
     /**
@@ -127,11 +175,10 @@ class DeviceUserLogs extends Model
                 continue; // Skip if device not found
             }
 
-            $exists = Members::where('device_user_id', $pin)
+            $exists = MemberToDevice::where('device_user_id', $pin)
                 ->where('status', 'success')
-                ->whereHas('memberToDevice.device', function ($q) use ($deviceSerialNo) {
-                    $q->where('device_serial_no', $deviceSerialNo);
-                })->exists();
+                ->where('device_serial_no', $deviceSerialNo)
+                ->exists();
 
             if (!$exists) {
                 $member = Members::create([
@@ -142,7 +189,6 @@ class DeviceUserLogs extends Model
                     'address'         => null,
                     'date_of_birth'   => null,
                     'designation'     => null,
-                    'device_user_id'  => $pin,
                     'status'          => 'success',
                     'source'          => 'device',
                 ]);
@@ -150,10 +196,11 @@ class DeviceUserLogs extends Model
                 MemberToDevice::create([
                     'member_id'   => $member->id,
                     'device_id'   => $device->id,
+                    'device_user_id'  => $pin,
+                    'device_serial_no' => $deviceSerialNo,
                     'assigned_at' => now(),
                 ]);
             }
         }
-
     }
 }

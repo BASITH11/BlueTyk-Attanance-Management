@@ -1,7 +1,7 @@
 import { env } from "@utils/helpers";
 import axios from "axios";
 import { invalidateGuard } from "@utils/authGuard";
-import { useAuthStore } from "@config/authStore";
+import { useAuthStore,useSubscriptionStore } from "@config/authStore";
 import { notify } from "@utils/helpers";
 
 axios.defaults.baseURL = env("API_BASE_URL", "http://127.0.0.1:8000/api/");
@@ -29,6 +29,9 @@ axios.interceptors.response.use(
     (error) => {
         if (error.status == 401 || error.response?.status == 401) {
             invalidateGuard();
+        }
+        if (error.status === 423 ||  error.response?.status == 423) {
+           useSubscriptionStore.getState().openDrawer();
         }
 
         notify({

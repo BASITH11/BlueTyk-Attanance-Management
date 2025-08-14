@@ -13,12 +13,16 @@ import { Route as TestRouteImport } from './routes/test'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UsersUserLayoutRouteImport } from './routes/users/user-layout'
 import { Route as MembersViewMembersRouteImport } from './routes/members/view-members'
+import { Route as MembersMemberLayoutRouteImport } from './routes/members/member-layout'
 import { Route as MembersAddMembersRouteImport } from './routes/members/add-members'
 import { Route as MembersMemberIdRouteImport } from './routes/members/$memberId'
 import { Route as DeviceViewDeviceRouteImport } from './routes/device/view-device'
+import { Route as DeviceDeviceLayoutRouteImport } from './routes/device/device-layout'
 import { Route as DeviceAddDeviceRouteImport } from './routes/device/add-device'
 import { Route as DeviceDeviceIdRouteImport } from './routes/device/$deviceId'
+import { Route as AttendanceViewAttendenceRouteImport } from './routes/attendance/view-attendence'
 import { Route as MembersMemberEditMemberIdRouteImport } from './routes/members/memberEdit/$memberId'
 import { Route as DeviceDeviceEditDeviceIdRouteImport } from './routes/device/deviceEdit/$deviceId'
 
@@ -42,9 +46,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsersUserLayoutRoute = UsersUserLayoutRouteImport.update({
+  id: '/users/user-layout',
+  path: '/users/user-layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MembersViewMembersRoute = MembersViewMembersRouteImport.update({
   id: '/members/view-members',
   path: '/members/view-members',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembersMemberLayoutRoute = MembersMemberLayoutRouteImport.update({
+  id: '/members/member-layout',
+  path: '/members/member-layout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembersAddMembersRoute = MembersAddMembersRouteImport.update({
@@ -62,6 +76,11 @@ const DeviceViewDeviceRoute = DeviceViewDeviceRouteImport.update({
   path: '/device/view-device',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeviceDeviceLayoutRoute = DeviceDeviceLayoutRouteImport.update({
+  id: '/device/device-layout',
+  path: '/device/device-layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DeviceAddDeviceRoute = DeviceAddDeviceRouteImport.update({
   id: '/device/add-device',
   path: '/device/add-device',
@@ -72,6 +91,12 @@ const DeviceDeviceIdRoute = DeviceDeviceIdRouteImport.update({
   path: '/device/$deviceId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AttendanceViewAttendenceRoute =
+  AttendanceViewAttendenceRouteImport.update({
+    id: '/attendance/view-attendence',
+    path: '/attendance/view-attendence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const MembersMemberEditMemberIdRoute =
   MembersMemberEditMemberIdRouteImport.update({
     id: '/members/memberEdit/$memberId',
@@ -90,12 +115,16 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/test': typeof TestRoute
+  '/attendance/view-attendence': typeof AttendanceViewAttendenceRoute
   '/device/$deviceId': typeof DeviceDeviceIdRoute
   '/device/add-device': typeof DeviceAddDeviceRoute
+  '/device/device-layout': typeof DeviceDeviceLayoutRoute
   '/device/view-device': typeof DeviceViewDeviceRoute
   '/members/$memberId': typeof MembersMemberIdRoute
   '/members/add-members': typeof MembersAddMembersRoute
+  '/members/member-layout': typeof MembersMemberLayoutRoute
   '/members/view-members': typeof MembersViewMembersRoute
+  '/users/user-layout': typeof UsersUserLayoutRoute
   '/device/deviceEdit/$deviceId': typeof DeviceDeviceEditDeviceIdRoute
   '/members/memberEdit/$memberId': typeof MembersMemberEditMemberIdRoute
 }
@@ -104,12 +133,16 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/test': typeof TestRoute
+  '/attendance/view-attendence': typeof AttendanceViewAttendenceRoute
   '/device/$deviceId': typeof DeviceDeviceIdRoute
   '/device/add-device': typeof DeviceAddDeviceRoute
+  '/device/device-layout': typeof DeviceDeviceLayoutRoute
   '/device/view-device': typeof DeviceViewDeviceRoute
   '/members/$memberId': typeof MembersMemberIdRoute
   '/members/add-members': typeof MembersAddMembersRoute
+  '/members/member-layout': typeof MembersMemberLayoutRoute
   '/members/view-members': typeof MembersViewMembersRoute
+  '/users/user-layout': typeof UsersUserLayoutRoute
   '/device/deviceEdit/$deviceId': typeof DeviceDeviceEditDeviceIdRoute
   '/members/memberEdit/$memberId': typeof MembersMemberEditMemberIdRoute
 }
@@ -119,12 +152,16 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/test': typeof TestRoute
+  '/attendance/view-attendence': typeof AttendanceViewAttendenceRoute
   '/device/$deviceId': typeof DeviceDeviceIdRoute
   '/device/add-device': typeof DeviceAddDeviceRoute
+  '/device/device-layout': typeof DeviceDeviceLayoutRoute
   '/device/view-device': typeof DeviceViewDeviceRoute
   '/members/$memberId': typeof MembersMemberIdRoute
   '/members/add-members': typeof MembersAddMembersRoute
+  '/members/member-layout': typeof MembersMemberLayoutRoute
   '/members/view-members': typeof MembersViewMembersRoute
+  '/users/user-layout': typeof UsersUserLayoutRoute
   '/device/deviceEdit/$deviceId': typeof DeviceDeviceEditDeviceIdRoute
   '/members/memberEdit/$memberId': typeof MembersMemberEditMemberIdRoute
 }
@@ -135,12 +172,16 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/test'
+    | '/attendance/view-attendence'
     | '/device/$deviceId'
     | '/device/add-device'
+    | '/device/device-layout'
     | '/device/view-device'
     | '/members/$memberId'
     | '/members/add-members'
+    | '/members/member-layout'
     | '/members/view-members'
+    | '/users/user-layout'
     | '/device/deviceEdit/$deviceId'
     | '/members/memberEdit/$memberId'
   fileRoutesByTo: FileRoutesByTo
@@ -149,12 +190,16 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/test'
+    | '/attendance/view-attendence'
     | '/device/$deviceId'
     | '/device/add-device'
+    | '/device/device-layout'
     | '/device/view-device'
     | '/members/$memberId'
     | '/members/add-members'
+    | '/members/member-layout'
     | '/members/view-members'
+    | '/users/user-layout'
     | '/device/deviceEdit/$deviceId'
     | '/members/memberEdit/$memberId'
   id:
@@ -163,12 +208,16 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/test'
+    | '/attendance/view-attendence'
     | '/device/$deviceId'
     | '/device/add-device'
+    | '/device/device-layout'
     | '/device/view-device'
     | '/members/$memberId'
     | '/members/add-members'
+    | '/members/member-layout'
     | '/members/view-members'
+    | '/users/user-layout'
     | '/device/deviceEdit/$deviceId'
     | '/members/memberEdit/$memberId'
   fileRoutesById: FileRoutesById
@@ -178,12 +227,16 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   TestRoute: typeof TestRoute
+  AttendanceViewAttendenceRoute: typeof AttendanceViewAttendenceRoute
   DeviceDeviceIdRoute: typeof DeviceDeviceIdRoute
   DeviceAddDeviceRoute: typeof DeviceAddDeviceRoute
+  DeviceDeviceLayoutRoute: typeof DeviceDeviceLayoutRoute
   DeviceViewDeviceRoute: typeof DeviceViewDeviceRoute
   MembersMemberIdRoute: typeof MembersMemberIdRoute
   MembersAddMembersRoute: typeof MembersAddMembersRoute
+  MembersMemberLayoutRoute: typeof MembersMemberLayoutRoute
   MembersViewMembersRoute: typeof MembersViewMembersRoute
+  UsersUserLayoutRoute: typeof UsersUserLayoutRoute
   DeviceDeviceEditDeviceIdRoute: typeof DeviceDeviceEditDeviceIdRoute
   MembersMemberEditMemberIdRoute: typeof MembersMemberEditMemberIdRoute
 }
@@ -218,11 +271,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/users/user-layout': {
+      id: '/users/user-layout'
+      path: '/users/user-layout'
+      fullPath: '/users/user-layout'
+      preLoaderRoute: typeof UsersUserLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/members/view-members': {
       id: '/members/view-members'
       path: '/members/view-members'
       fullPath: '/members/view-members'
       preLoaderRoute: typeof MembersViewMembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/members/member-layout': {
+      id: '/members/member-layout'
+      path: '/members/member-layout'
+      fullPath: '/members/member-layout'
+      preLoaderRoute: typeof MembersMemberLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/members/add-members': {
@@ -246,6 +313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeviceViewDeviceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/device/device-layout': {
+      id: '/device/device-layout'
+      path: '/device/device-layout'
+      fullPath: '/device/device-layout'
+      preLoaderRoute: typeof DeviceDeviceLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/device/add-device': {
       id: '/device/add-device'
       path: '/device/add-device'
@@ -258,6 +332,13 @@ declare module '@tanstack/react-router' {
       path: '/device/$deviceId'
       fullPath: '/device/$deviceId'
       preLoaderRoute: typeof DeviceDeviceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/attendance/view-attendence': {
+      id: '/attendance/view-attendence'
+      path: '/attendance/view-attendence'
+      fullPath: '/attendance/view-attendence'
+      preLoaderRoute: typeof AttendanceViewAttendenceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/members/memberEdit/$memberId': {
@@ -282,12 +363,16 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   TestRoute: TestRoute,
+  AttendanceViewAttendenceRoute: AttendanceViewAttendenceRoute,
   DeviceDeviceIdRoute: DeviceDeviceIdRoute,
   DeviceAddDeviceRoute: DeviceAddDeviceRoute,
+  DeviceDeviceLayoutRoute: DeviceDeviceLayoutRoute,
   DeviceViewDeviceRoute: DeviceViewDeviceRoute,
   MembersMemberIdRoute: MembersMemberIdRoute,
   MembersAddMembersRoute: MembersAddMembersRoute,
+  MembersMemberLayoutRoute: MembersMemberLayoutRoute,
   MembersViewMembersRoute: MembersViewMembersRoute,
+  UsersUserLayoutRoute: UsersUserLayoutRoute,
   DeviceDeviceEditDeviceIdRoute: DeviceDeviceEditDeviceIdRoute,
   MembersMemberEditMemberIdRoute: MembersMemberEditMemberIdRoute,
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Device extends Model
 {
- use SoftDeletes;
+    use SoftDeletes;
 
     protected $table = 'device';
     protected $primaryKey = 'id';
@@ -18,8 +18,28 @@ class Device extends Model
         'device_serial_no',
         'last_seen_at',
         'status',
+        'location_id',
+        'device_type_id',
     ];
 
-   
+    public function deviceToDeviceType()
+    {
+        return $this->belongsTo(DeviceType::class, 'device_type_id', 'id');
+    }
+
+
+    public function deviceToLocation()
+    {
+        return $this->belongsTo(Locations::class, 'location_id', 'id');
+    }
+
+    public function members()
+    {
+        return $this->hasMany(Members::class, 'device_id', 'id',);
+    }
+
+    public function memberToDevice()
+    {
+        return $this->hasMany(MemberToDevice::class, 'id', 'device_id');
+    }
 }
-    

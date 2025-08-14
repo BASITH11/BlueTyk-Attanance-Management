@@ -97,3 +97,23 @@ export const useUpdateDevice = () => {
         mutationFn: updateDevice,
     });
 }
+
+
+//fetch Devices
+const fetchDevicesAttributes = async () => {
+    const response = await axios.get(`${prefix}/device-attributes`);
+     
+    return response.data;
+};
+
+export const useFetchDevicesAttributes = () => {
+    return useQuery({
+        queryKey: ['devicesAttributes'],
+        queryFn: fetchDevicesAttributes,
+        cacheTime: 0,                 // Do not cache
+        staleTime: 0,                 // Always considered stale
+        refetchOnMount: true,        // Refetch on component mount
+        refetchOnWindowFocus: true,  // Refetch when window regains focus
+        refetchOnReconnect: true,
+    });
+}

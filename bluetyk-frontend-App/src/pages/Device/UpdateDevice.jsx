@@ -14,40 +14,48 @@ import {
 } from "@mantine/core";
 import { IconEdit, IconFingerprint, IconHash, } from '@tabler/icons-react';
 import { useForm } from "@mantine/form";
-import { useFetchDeviceById, useUpdateDevice } from "../../queries/device";
+import { useFetchDeviceById, useUpdateDevice, useFetchDevicesAttributes } from "../../queries/device";
 import { notify } from "@utils/helpers";
-import { useParams } from '@tanstack/react-router';
+import { useSearch } from '@tanstack/react-router';
 
 
 const UpdateDevice = () => {
 
 
-    const { deviceId } = useParams({ strict: false });
+    const search = useSearch({ from: '/device/device-layout' });
+    const deviceId = search?.deviceId || null;
     const { data, isLoading } = useFetchDeviceById(deviceId);
     const device = data?.device ?? {};
+
+    const { data: devicesAttributes = [], isloading } = useFetchDevicesAttributes();
+    const deviceTypes = devicesAttributes?.device_types || [];
+    const locations = devicesAttributes?.locations || [];
     // Form setup
     const form = useForm({
         initialValues: {
             deviceName: '',
             serialNumber: '',
-            status: '',
+            deviceTypes: '',
+            locations:'',
         },
         validate: {
             deviceName: (value) => (value.length < 1 ? 'Device name is required' : null),
             serialNumber: (value) => (value.length < 1 ? 'Serial number is required' : null),
-            status: (value) => (value.length < 1 ? 'Status is required' : null),
+            deviceTypes: (value) => (value.length < 1 ? 'device type is required' : null),
+            locations: (value) => (value.length < 1 ? 'location is required' : null),
         }
     });
 
     useEffect(() => {
-        if (data?.device) {
+        if (device?.id) {
             form.setValues({
                 deviceName: device.device_name || "",
                 serialNumber: device.device_serial_no || "",
-                status: String(device.device_status ?? ""),
+                deviceTypes: String(device.device_type_id || ""),
+                locations: String(device.location_id || ""),
             });
         }
-    }, [data]);
+    }, [device]);
 
 
     const UpdateDeviceMutation = useUpdateDevice();
@@ -57,7 +65,8 @@ const UpdateDevice = () => {
         formData.append("id", deviceId);
         formData.append("device_name", values.deviceName);
         formData.append("device_serial_no", values.serialNumber);
-        formData.append("device_status", values.status);
+        formData.append("device_type_id", values.deviceTypes);
+        formData.append("location_id", values.locations);
 
         UpdateDeviceMutation.mutate(formData, {
             onSuccess: (data) => {
@@ -73,12 +82,6 @@ const UpdateDevice = () => {
 
     return (
         <Paper p="xl">
-            <Group gap="sm" mb="sm" align="center">
-                <IconEdit size={28} />
-                <Title order={2}>Update Device</Title>
-            </Group>
-
-            <Divider my="md" />
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
                 <Grid>
@@ -108,15 +111,25 @@ const UpdateDevice = () => {
 
                                     />
                                     <Select
-                                        label="Device Status"
+                                        label="Device Type"
                                         withAsterisk
-                                        leftSectionPointerEvents="none"
-                                        placeholder='Select Device Status'
-                                        {...form.getInputProps("status")}
-                                        data={[
-                                            { value: '1', label: 'Active' },
-                                            { value: '0', label: 'Inactive' },
-                                        ]}
+                                        placeholder="Select Device Type"
+                                        {...form.getInputProps("deviceTypes")}
+                                        data={deviceTypes?.map((type) => ({
+                                            value: String(type.id),
+                                            label: type.type
+                                        })) || []}
+                                    />
+
+                                    <Select
+                                        label="Device Location"
+                                        withAsterisk
+                                        placeholder="Select Device Location"
+                                        {...form.getInputProps("locations")}
+                                        data={locations?.map((item) => ({
+                                            value: String(item.id),
+                                            label: item.location_name
+                                        })) || []}
                                     />
 
 

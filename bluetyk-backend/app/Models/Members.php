@@ -26,45 +26,48 @@ class Members extends Model
     'date_of_birth',
     'designation',
     'status',
-    'device_user_id',
     'source',
 
   ];
 
-  public function memberToDevice()
+
+
+  public function memberToAttendance()
   {
-    return $this->hasOne(MemberToDevice::class, 'member_id')->with('device');
+    return $this->hasMany(Attendances::class, 'device_user_id', 'pin');
   }
 
 
-  /**
-   * adding member to device
-   */
+  public function memberToDevice()
+  {
+    return $this->hasMany(MemberToDevice::class , 'member_id');
+  }
+
+
   /**
    * Add a single pending member to their assigned device.
    */
   public static function addingMemberToDevice()
   {
-    $member = Members::with(['memberToDevice.device'])
-      ->where('status', 'pending')
+    $memberToDevice = MemberToDevice::with(['member', 'device'])
       ->whereNull('device_user_id')
-      ->whereHas('memberToDevice.device', function ($q) {
+      ->whereHas('device', function ($q) {
         $q->whereNotNull('device_serial_no');
       })
       ->first();
 
 
-    if (!$member) {
+    if (!$memberToDevice) {
       return; // No pending members found
     }
 
-    $memberToDevice = $member->memberToDevice;
+    $member = $memberToDevice->member;
+    $device = $memberToDevice->device;
 
-    if (!$memberToDevice || !$memberToDevice->device) {
-      return; // No device assigned, skip
+    if (!$member || !$device) {
+      return; // Missing related member or device
     }
 
-    $device = $memberToDevice->device;
 
     if ($device && $device->device_serial_no) {
       $fullname = $member->name;
@@ -88,8 +91,8 @@ class Members extends Model
       ]);
 
       // Update member with assigned pin
-      $member->device_user_id = $pin;
-      $member->save();
+      $memberToDevice->device_user_id = $pin;
+      $memberToDevice->save();
 
       CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
     }

@@ -30,6 +30,7 @@ export const cssVariablesResolver = (theme) => ({
         "--app-primary-color": "#4361ee;",
         "--app-primary-text-color": "white",
         "--app-primary-active-color": "#1e293be6",
+        "--app-primary-background-color":"#f8f9fa",
     },
     dark: {
         "--mantine-color-header": theme.colors.blue[9],

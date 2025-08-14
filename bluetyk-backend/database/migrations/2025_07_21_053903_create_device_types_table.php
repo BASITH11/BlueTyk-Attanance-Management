@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('device', function (Blueprint $table) {
+        Schema::create('device_types', function (Blueprint $table) {
             $table->id();
-            $table->string('device_name')->unique();
-            $table->string('device_serial_no')->unique();
-             $table->timestamp('last_seen_at')->nullable();
-            $table->enum('status', ['online', 'offline'])->default('offline');
+            $table->string('type');
             $table->timestamps();
-            $table->softDeletes(); // Add soft delete column
+            $table->softDeletes();
         });
     }
 
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('device');
+        Schema::dropIfExists('device_types');
     }
 };

@@ -20,5 +20,13 @@ class Attendances extends Model
         'verified',
     ];
 
-    
+    // public function device()
+    // {
+    //     return $this->belongsTo(Device::class, 'device_serial_no', 'device_serial_no');
+    // }
+
+    public function memberToDevice()
+    {
+        return $this->belongsTo(MemberToDevice::class, 'pin', 'device_user_id');
+    }
 }

@@ -6,7 +6,7 @@ import {
 } from "@mantine/core";
 import { IconInfoSquare } from "@tabler/icons-react";
 import { Outlet } from "@tanstack/react-router";
-import logo from "../../assets/images/bluewhyte_logo.png"
+import logo from "../../assets/images/logo.png"
 
 
 export default function AuthLayout() {

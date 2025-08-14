@@ -22,6 +22,7 @@ use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
         'name',
         'email',
         'password',
+        'user_type_id',
     ];
 
     /**
