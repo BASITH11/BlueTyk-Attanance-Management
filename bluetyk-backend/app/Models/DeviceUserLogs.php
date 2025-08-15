@@ -69,6 +69,8 @@ class DeviceUserLogs extends Model
             if ($allSuccess && $member->memberToDevice->isNotEmpty()) {
 
                 $member->update(['status' => 'success']);
+            } else {
+                $member->update(['status' => 'pending']);
             }
         }
     }
