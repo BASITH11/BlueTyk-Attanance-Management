@@ -15,13 +15,13 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserTableSeeder::class,
-            MemberTableSeeder::class,
+            // MemberTableSeeder::class,
             UserTypesSeeder::class,
             LocationSeeder::class,
             DeviceTypeSeeder::class,
-            DeviceTableSeeder::class,   
-            AttandanceSeeder::class,
-            DeviceUserLogSeeder::class,
+            // DeviceTableSeeder::class,   
+            // AttandanceSeeder::class,
+            // DeviceUserLogSeeder::class,
             SettingsSeeder::class,
         ]);
     }

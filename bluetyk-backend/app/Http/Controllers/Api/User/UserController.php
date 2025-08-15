@@ -9,13 +9,13 @@ use App\Models\UserType;
 use Exception;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Route;               
 
 class UserController extends Controller
 {
     /**
      * static function for routes
-     */
+     */ 
     public static function routes()
     {
         Route::controller(self::class)

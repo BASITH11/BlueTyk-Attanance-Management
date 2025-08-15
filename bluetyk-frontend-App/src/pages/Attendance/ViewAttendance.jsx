@@ -1,5 +1,5 @@
 import { React, useState } from "react";
-import { Paper, TextInput, Select, Group, Button, Flex, Skeleton, Box, Title, Text } from "@mantine/core";
+import { Paper, TextInput, Select, Group, Button, Flex, Skeleton, Box, Title, Text,ScrollArea } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import {
     IconMapPin,
@@ -64,61 +64,83 @@ const ViewAttendance = () => {
 
             <Paper p="md">
 
-                <Group grow wrap="wrap" spacing="md" direction="column" className="md:flex-row">
-                    <TextInput
-                        placeholder="Search by Name"
-                        value={filters.name}
-                        onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-                        leftSection={<IconSearch size={16} />}
-                    />
-
-                    <Select
-                        placeholder="Select Location"
-                        data={locations.map(loc => ({ value: String(loc.id), label: loc.location_name }))}
-                        value={filters.location}
-                        onChange={(val) => setFilters({ ...filters, location: val })}
-                        clearable
-                        leftSection={<IconMapPin size={16} />}
-                    />
-
-                    <Select
-                        placeholder="Select Device"
-                        data={allDevice?.map(dev => ({ value: String(dev.id), label: dev.device_name })) || []}
-                        value={filters.device}
-                        onChange={(val) => setFilters({ ...filters, device: val })}
-                        clearable
-                        leftSection={<IconDeviceDesktop size={16} />}
-                    />
-
-                    <DateInput
-                        placeholder="From Date"
-                        value={filters.from_date}
-                        onChange={(val) => setFilters({ ...filters, from_date: val })}
-                        leftSection={<IconCalendar size={16} />}
-                    />
-
-                    <DateInput
-                        placeholder="To Date"
-                        value={filters.to_date}
-                        onChange={(val) => setFilters({ ...filters, to_date: val })}
-                        leftSection={<IconCalendar size={16} />}
-                    />
-
-                    <Button
-                        variant="outline"
-                        onClick={() =>
-                            setFilters({
-                                name: "",
-                                location: null,
-                                device: null,
-                                from_date: null,
-                                to_date: null
-                            })
-                        }
+                <ScrollArea
+                    type="auto"
+                    offsetScrollbars
+                    scrollbarSize={6}
+                    style={{
+                        minHeight: 60,
+                    }}
+                >
+                    <Group
+                        spacing="md"
+                        style={{
+                            flexWrap: "nowrap",
+                            minWidth: "fit-content", // ensures scroll works
+                            paddingBottom: 8,
+                        }}
                     >
-                        Reset
-                    </Button>
-                </Group>
+                        <TextInput
+                            placeholder="Search by Name"
+                            value={filters.name}
+                            onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+                            leftSection={<IconSearch size={16} />}
+                            style={{ minWidth: 200 }}
+                        />
+
+                        <Select
+                            placeholder="Select Location"
+                            data={locations.map((loc) => ({ value: String(loc.id), label: loc.location_name }))}
+                            value={filters.location}
+                            onChange={(val) => setFilters({ ...filters, location: val })}
+                            clearable
+                            leftSection={<IconMapPin size={16} />}
+                            style={{ minWidth: 200 }}
+                        />
+
+                        <Select
+                            placeholder="Select Device"
+                            data={allDevice?.map((dev) => ({ value: String(dev.id), label: dev.device_name })) || []}
+                            value={filters.device}
+                            onChange={(val) => setFilters({ ...filters, device: val })}
+                            clearable
+                            leftSection={<IconDeviceDesktop size={16} />}
+                            style={{ minWidth: 200 }}
+                        />
+
+                        <DateInput
+                            placeholder="From Date"
+                            value={filters.from_date}
+                            onChange={(val) => setFilters({ ...filters, from_date: val })}
+                            leftSection={<IconCalendar size={16} />}
+                            style={{ minWidth: 160 }}
+                        />
+
+                        <DateInput
+                            placeholder="To Date"
+                            value={filters.to_date}
+                            onChange={(val) => setFilters({ ...filters, to_date: val })}
+                            leftSection={<IconCalendar size={16} />}
+                            style={{ minWidth: 160 }}
+                        />
+
+                        <Button
+                            variant="outline"
+                            onClick={() =>
+                                setFilters({
+                                    name: "",
+                                    location: null,
+                                    device: null,
+                                    from_date: null,
+                                    to_date: null,
+                                })
+                            }
+                            style={{ minWidth: 100 }}
+                        >
+                            Reset
+                        </Button>
+                    </Group>
+                </ScrollArea>
 
 
                 {isFetching ? (

@@ -1,4 +1,5 @@
-import { AppShell, NavLink, Stack, Box, Text, useMantineTheme } from "@mantine/core";
+import React, { useState } from "react";
+import { NavLink, Stack, Box, Text, Divider, ScrollArea, useMantineTheme } from "@mantine/core";
 import {
     IconHome2,
     IconUserPlus,
@@ -9,15 +10,17 @@ import {
     IconChevronRight,
     IconLogout
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useLogout } from "../../queries/auth";
 import { useRouterState } from "@tanstack/react-router";
 
-export default function Navbar() {
-    const routerState = useRouterState();
-    const currentPath = routerState.location.pathname;
+export default function Sidebar() {
     const theme = useMantineTheme();
+    const { location } = useRouterState();
+    const currentPath = location.pathname;
+    const [openMenu, setOpenMenu] = useState(null);
+    const logout = useLogout();
+    const handleLogout = () => logout.mutate();
 
-    const [openMenu, setOpenMenu] = useState(null); // track which menu is open
 
     const navLinks = [
         {
@@ -28,6 +31,7 @@ export default function Navbar() {
                 { label: "Device", to: "/device/device-layout", icon: IconDeviceDesktop },
                 { label: "Users", to: "/users/user-layout", icon: IconUsers },
                 { label: "Attendance", to: "/attendance/view-attendence", icon: IconChartBar },
+
             ],
         },
         {
@@ -53,83 +57,77 @@ export default function Navbar() {
         },
     ];
 
-    const handleToggle = (label) => {
-        setOpenMenu(openMenu === label ? null : label); // toggle open/close
-    };
+    const handleToggle = (label) => setOpenMenu(openMenu === label ? null : label);
 
     return (
-        <Box
-            mt={20}
-            sx={{
-                width: "75%",
-                padding: "1rem",
-                border: "1px solid #e0e0e0",
-                borderRadius: "8px",
-            }}
-        >
-            <Stack spacing="sm">
-                {navLinks.map((section) => (
-                    <><Box key={section.title} p={10}>
-                        <Text weight={700} size="md" mb={4}>
-                            {section.title}
-                        </Text>
-                        <Stack spacing="xs">
-                            {section.links.map((link) => (
-                                <Box key={link.label}>
-                                    {/* Parent NavLink */}
-                                    <NavLink
-                                        href={link.to || "#"} // parent can optionally have a route
-                                        label={link.label}
-                                        leftSection={<link.icon size={20} stroke={1.5} />}
-                                        rightSection={link.subLinks ? <IconChevronRight size={12} stroke={1.5} /> : null}
-                                        active={currentPath === link.to}
-                                        variant={currentPath === link.to ? "filled" : "subtle"}
-                                        onClick={(e) => {
-                                            if (link.subLinks) {
-                                                e.preventDefault(); // prevent navigation if submenu exists
-                                                handleToggle(link.label);
-                                            }
-                                        }} />
+        <Box style={{ width: 280, display: "flex", flexDirection: "column", height: "100vh", backgroundColor: "white" }}>
+            {/* Scrollable menu */}
+            <ScrollArea style={{ flex: 1 }}>
+                <Stack spacing="sm" p="md">
+                    {navLinks.map((section) => (
+                        <Box key={section.title}>
+                            <Text weight={700} size="md" mb={4}>
+                                {section.title}
+                            </Text>
+                            <Stack spacing="xs">
+                                {section.links.map((link) => (
+                                    <Box key={link.label}>
+                                        <NavLink
+                                            href={link.to || "#"}
+                                            label={link.label}
+                                            leftSection={link.icon ? <link.icon size={20} stroke={1.5} /> : null}
+                                            rightSection={link.subLinks ? <IconChevronRight size={12} stroke={1.5} /> : null}
+                                            active={currentPath === link.to}
+                                            variant={currentPath === link.to ? "filled" : "subtle"}
+                                            onClick={(e) => {
+                                                if (link.subLinks) {
+                                                    e.preventDefault();
+                                                    handleToggle(link.label);
+                                                } else {
+                                                    setCurrentPath(link.to);
+                                                }
+                                            }}
+                                        />
+                                        {link.subLinks && openMenu === link.label && (
+                                            <Stack pl={20} spacing="xs">
+                                                {link.subLinks.map((sub) => (
+                                                    <NavLink
+                                                        key={sub.label}
+                                                        href={sub.to}
+                                                        label={sub.label}
+                                                        leftSection={<Box style={{ width: 16 }} />}
+                                                        rightSection={<IconChevronRight size={12} stroke={1.5} />}
+                                                        active={currentPath === sub.to}
+                                                        variant={currentPath === sub.to ? "filled" : "subtle"}
+                                                        sx={{ fontSize: 14 }}
+                                                    />
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
+                                ))}
+                            </Stack>
+                        </Box>
+                    ))}
+                </Stack>
+            </ScrollArea>
 
-                                    {/* Collapsible Submenu */}
-                                    {link.subLinks && openMenu === link.label && (
-                                        <Stack pl={20} spacing="xs">
-                                            {link.subLinks.map((sub) => (
-                                                <NavLink
-                                                    key={sub.label}
-                                                    href={sub.to}
-                                                    label={sub.label}
-                                                    leftSection={<Box style={{ width: 16 }} />}
-                                                    rightSection={<IconChevronRight size={12} stroke={1.5} />}
-                                                    active={currentPath === sub.to}
-                                                    variant={currentPath === sub.to ? "filled" : "subtle"}
-                                                    sx={{ fontSize: 14 }} />
-                                            ))}
-                                        </Stack>
-                                    )}
-                                </Box>
-                            ))}
-                        </Stack>
-                    </Box></>
-                ))}
-            </Stack>
-
-            <AppShell.Section>
+            {/* Logout fixed at bottom */}
+            <Divider my="md" />
+            <Box p="sm" mb={60}>
                 <NavLink
                     label="Logout"
                     leftSection={<IconLogout size="1.2rem" />}
                     variant="subtle"
-                    color="red"
+                    onClick={handleLogout}
                     styles={{
                         root: {
                             borderRadius: theme.radius.md,
-                            '&:hover': {
-                                backgroundColor: theme.colors.red[0],
-                            }
-                        }
-                    }} />
-            </AppShell.Section>
-
+                            "&:hover": { backgroundColor: theme.colors.red[0] },
+                        },
+                    }}
+                />
+            </Box>
         </Box>
     );
 }

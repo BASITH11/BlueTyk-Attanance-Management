@@ -17,7 +17,7 @@ import {
     Box
 } from "@mantine/core";
 import { useFetchMemberById, useFetchMemberImage } from "../../queries/members";
-import ProfilePlaceholder from '../../assets/images/profile.jpg';
+import ProfilePlaceholder from '../../assets/images/dummy-user.jpg';
 import { useSearch } from '@tanstack/react-router';
 
 function MemberDetails() {

@@ -24,7 +24,8 @@ import {
     IconUserPlus,
     IconChevronDown,
     IconApps,
-    IconDeviceDesktop
+    IconDeviceDesktop,
+    IconX
 } from "@tabler/icons-react";
 import { useAuthStore } from "../../config/authStore";
 import { useLogout } from "../../queries/auth";
@@ -256,13 +257,24 @@ export default function Header({ toggle, opened }) {
                             </Menu.Dropdown>
                         </Menu>
                     )}
-                    <Burger
-                        size="sm"
-                        hiddenFrom="md"
-                        opened={opened}
-                        onClick={toggle}
-                        color={theme.colors.gray[7]}
-                    />
+                    {opened ? (
+                        <ActionIcon
+                            size="lg"
+                            hiddenFrom="md"
+                            variant="subtle"
+                            onClick={toggle}
+                        >
+                            <IconX size={24} stroke={2.5} color={theme.colors.gray[7]} />
+                        </ActionIcon>
+                    ) : (
+                        <Burger
+                            size="sm"
+                            hiddenFrom="md"
+                            opened={opened}
+                            onClick={toggle}
+                            color={theme.colors.gray[7]}
+                        />
+                    )}
                 </Flex>
             </Flex>
 

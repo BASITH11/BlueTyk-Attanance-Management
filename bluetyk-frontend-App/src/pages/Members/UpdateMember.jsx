@@ -2,7 +2,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { IconUser, IconPhone, IconCreditCard, IconEdit, IconCalendar, IconMapPin, IconBriefcase, IconTrash, IconPlus, IconDeviceDesktop } from '@tabler/icons-react';
 import { useFetchMemberById, useFetchMemberImage, useUpdateMember, useDeleteMemberFromDevice, useFetchUnlinkedDevice, useAssignDevice } from "../../queries/members";
-import ProfilePlaceholder from '../../assets/images/profile.jpg';
+import ProfilePlaceholder from '../../assets/images/dummy-user.jpg';
 import { useQueryClient } from "@tanstack/react-query";
 import { useFetchDevices } from "../../queries/device";
 import { DateInput } from "@mantine/dates";
@@ -391,19 +391,21 @@ const UpdateMembers = () => {
                             onChange={() => toggleDevice(map.device_id)}
                         />
                     ))}
-                <Box w={400}>
-                    <Box mt="sm" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button
-                            color="red"
-                            leftSection={<IconTrash size={16} />}
-                            style={{ width: 'fit-content' }}
-                            disabled={selectedDevices.length === 0}
-                            onClick={handleBulkDelete}
-                        >
-                            Remove
-                        </Button>
+                {Array.isArray(memberTodevice) && memberTodevice.length > 0 && (
+                    <Box w={400}>
+                        <Box mt="sm" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <Button
+                                color="red"
+                                leftSection={<IconTrash size={16} />}
+                                style={{ width: 'fit-content' }}
+                                disabled={selectedDevices.length === 0}
+                                onClick={handleBulkDelete}
+                            >
+                                Remove
+                            </Button>
+                        </Box>
                     </Box>
-                </Box>
+                )}
 
             </Stack>
 
@@ -438,7 +440,7 @@ const UpdateMembers = () => {
                                 <Box key={deviceId} mb="sm" p="sm" style={{ border: '1px solid #ccc', borderRadius: 8 }}>
                                     <strong>{device?.device_name}</strong>
                                     <Group mt="xs">
-                                        <label>
+                                        <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                                             <input
                                                 type="checkbox"
                                                 checked={deviceAssignments[deviceId]?.card === 1}
@@ -453,7 +455,7 @@ const UpdateMembers = () => {
                                                 }
                                             /> Card
                                         </label>
-                                        <label>
+                                        <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                                             <input
                                                 type="checkbox"
                                                 checked={deviceAssignments[deviceId]?.finger_print === 1}
@@ -468,7 +470,7 @@ const UpdateMembers = () => {
                                                 }
                                             /> Finger
                                         </label>
-                                        <label>
+                                        <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                                             <input
                                                 type="checkbox"
                                                 checked={deviceAssignments[deviceId]?.face_id === 1}
@@ -489,7 +491,8 @@ const UpdateMembers = () => {
                         })}
                     </Box>
                 )}
-
+               
+               {unlinkedDevices.length > 0 && (
                 <Box mt="sm" style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Button
                         color="green"
@@ -500,6 +503,7 @@ const UpdateMembers = () => {
                         Add To Device
                     </Button>
                 </Box>
+               )}
             </Box>
 
 

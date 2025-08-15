@@ -3,7 +3,7 @@ import React, { useRef, useState } from "react";
 import { IconUser, IconPhone, IconCreditCard, IconUserPlus, IconCalendar, IconMapPin, IconBriefcase } from '@tabler/icons-react';
 import { useAddMember } from "../../queries/members";
 import { useFetchDevices } from "../../queries/device";
-import ProfilePlaceholder from '../../assets/images/profile.jpg';
+import ProfilePlaceholder from '../../assets/images/dummy-user.jpg';
 import { DateInput } from "@mantine/dates";
 import { notify } from "@utils/helpers";
 import {
@@ -255,7 +255,7 @@ const AddMembers = () => {
                                             <Box key={deviceId} mb="sm" p="sm" style={{ border: '1px solid #ccc', borderRadius: 8 }}>
                                                 <strong>{device?.device_name}</strong>
                                                 <Group mt="xs">
-                                                    <label>
+                                                    <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                                                         <input
                                                             type="checkbox"
                                                             checked={deviceAssignments[deviceId]?.card === 1}
@@ -270,7 +270,7 @@ const AddMembers = () => {
                                                             }
                                                         /> Card
                                                     </label>
-                                                    <label>
+                                                    <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                                                         <input
                                                             type="checkbox"
                                                             checked={deviceAssignments[deviceId]?.finger_print === 1}
@@ -285,7 +285,7 @@ const AddMembers = () => {
                                                             }
                                                         /> Finger
                                                     </label>
-                                                    <label>
+                                                    <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                                                         <input
                                                             type="checkbox"
                                                             checked={deviceAssignments[deviceId]?.face_id === 1}

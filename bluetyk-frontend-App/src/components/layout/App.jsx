@@ -10,37 +10,47 @@ import { useAuthStore } from "../../config/authStore";
 
 const App = () => {
 
-    const [opened, { toggle }] = useDisclosure(); // controls the navbar in mobile screen
+    const [opened, { toggle }] = useDisclosure();
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
     return (
         <AppShell
             header={{ height: { base: 60, sm: 70 } }}
             navbar={{
-                width: 250, breakpoint: "sm", collapsed: { mobile: !opened, desktop: true }
+                width: { base: 200, sm: 280 },
+                breakpoint: "sm",
+                collapsed: { mobile: !opened, desktop: true },
+               
+            }}
+            styles={{
+                navbar: {
+                    backgroundColor: "rgba(216, 213, 213, 0.5)",
+                    backdropFilter: "blur(4px)",
+                },
             }}
             aside={false}
             layout="default"
             withBorder={false}
             className="min-h-screen flex flex-col"
         >
-
             <AppShell.Header>
-                <Header toggle={toggle} />
+                <Header toggle={toggle} opened={opened}  />
             </AppShell.Header>
 
-            <AppShell.Navbar >
+            <AppShell.Navbar>
                 <Navbar toggle={toggle} />
             </AppShell.Navbar>
 
-            <AppShell.Main className="flex-grow" style={{ backgroundColor: "var(--app-primary-background-color)", }}><Outlet /> <SubscriptionDrawer /></AppShell.Main>
+            <AppShell.Main style={{ backgroundColor: "var(--app-primary-background-color)" }}>
+                <Outlet />
+                <SubscriptionDrawer />
+            </AppShell.Main>
 
-
-            <Box className="relative w-full flex justify-center" style={{ backgroundColor: "var(--app-primary-background-color)", }}>
+            <Box className="relative w-full flex justify-center" style={{ backgroundColor: "var(--app-primary-background-color)" }}>
                 <Footer />
             </Box>
+        </AppShell>
 
-        </AppShell >
     );
 };
 

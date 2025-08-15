@@ -22,12 +22,7 @@ class UserTableSeeder extends Seeder
             'user_type_id'=>1,
         ]);
 
-        User::create([
-            'name' => 'admin1',
-            'email' => 'admin1@gmail.com',
-            'password' => Hash::make('admin123'),
-            'user_type_id' =>2
-        ]);
+       
 
 
     }
