@@ -106,15 +106,15 @@ const Login = () => {
                             Real-time attendance tracking is live.
                         </Alert>
 
-                        <Alert icon={<IconCheck size={16} />} title="Success" color="green">
+                        <Alert icon={<IconCheck size={16} />} title="Options" color="blue">
                             Detailed attendance reports now available.
                         </Alert>
 
-                        <Alert icon={<IconAlertCircle size={16} />} title="Notice" color="yellow">
+                        <Alert icon={<IconAlertCircle size={16} />} title="Notice" color="blue">
                             Get notifications for absentees and late entries.
                         </Alert>
 
-                        <Alert icon={<IconRocket size={16} />} title="Update" color="violet">
+                        <Alert icon={<IconRocket size={16} />} title="Update" color="blue">
                             Improved integration with employee management.
                         </Alert>
                     </Stack>
