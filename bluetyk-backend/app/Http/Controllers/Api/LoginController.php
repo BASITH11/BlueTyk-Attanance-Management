@@ -63,12 +63,12 @@ class LoginController extends Controller
                     'token' => $token,
                 ],
                 'status'=>true,
-            ]);
+            ],200);
         } catch (Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'status' =>false,
-            ]);
+            ],500);
         }
     }
 
@@ -80,7 +80,7 @@ class LoginController extends Controller
             // Revoke current access token
             $request->user()->currentAccessToken()->delete();
 
-            return response()->json(['status'=>true,'message' => 'Logged out successfully']);
+            return response()->json(['status'=>true,'message' => 'Logged out successfully'],200);
         } catch (Exception $e) {
             return response()->json([
                 'status' => false,
