@@ -117,3 +117,19 @@ export const useFetchDevicesAttributes = () => {
         refetchOnReconnect: true,
     });
 }
+
+
+// Add a new device
+const syncDevice = async (id) => {
+    const response = await axios.post(`${prefix}/device-sync`,{
+        id:id,
+    });
+    return response;
+    // console.log(response);
+    
+}
+export const useSyncDevice = () => {
+    return useMutation({
+        mutationFn: syncDevice,
+    });
+}

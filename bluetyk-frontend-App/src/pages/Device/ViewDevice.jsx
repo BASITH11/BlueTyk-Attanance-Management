@@ -1,9 +1,11 @@
-import React from "react";
-import { Paper, Title, Group, Divider, Center, Skeleton, Flex, Badge } from "@mantine/core";
-import { IconListDetails, IconEye } from "@tabler/icons-react";
+import React, { useState } from "react";
+import { Paper, ActionIcon, Skeleton, Flex, Badge, Text, Loader, Popover } from "@mantine/core";
+import { IconEye, IconRefresh, } from "@tabler/icons-react";
 import DataTable from '@components/layout/DataTable';
-import { useFetchDevices, useDeleteDevice } from "../../queries/device";
+import { useFetchDevices, useDeleteDevice, useSyncDevice } from "../../queries/device";
 import { useNavigate } from '@tanstack/react-router';
+import { notify } from "@utils/helpers";
+
 
 
 
@@ -11,11 +13,28 @@ import { useNavigate } from '@tanstack/react-router';
 
 const ViewMembers = () => {
 
+    const [syncingId, setSyncingId] = useState(null);
 
     const { data: devices = [], isLoading, isError, error } = useFetchDevices();
-    console.log(devices);
     const { mutate: deleteMutate } = useDeleteDevice();
+    const { mutate: syncMutate } = useSyncDevice();
     const navigate = useNavigate();
+
+    const handleSync = async (id) => {
+        setSyncingId(id);
+
+        syncMutate(id, {
+            onSuccess: (response) => {
+                notify({
+                    title: "Success",
+                    message: response.message,
+                    iconType: "success",
+                });
+                setSyncingId(null);
+            },
+        });
+
+    };
 
 
     const columns = [
@@ -38,7 +57,52 @@ const ViewMembers = () => {
                     {status === 'online' ? "online" : "offline"}
                 </Badge>
             ),
+        },
+        {
+            accessor: "sync",
+            label: "Sync",
+            render: (value, row) => {
+                const [opened, setOpened] = React.useState(false);
+
+                return (
+                    <Popover
+                        width={200}
+                        position="bottom"
+                        withArrow
+                        shadow="md"
+                        opened={opened}
+                        onChange={setOpened}
+                    >
+                        <Popover.Target>
+                            <ActionIcon
+                                variant="subtle"
+                                color="blue"
+                                onMouseEnter={() => setOpened(true)}
+                                onMouseLeave={() => setOpened(false)}
+                                onClick={() => handleSync(row.id)}
+                                disabled={syncingId === row.id}
+                            >
+                                {syncingId === row.id ? (
+                                    <Loader size={18} color="blue" />
+                                ) : (
+                                    <IconRefresh size={18} />
+                                )}
+                            </ActionIcon>
+                        </Popover.Target>
+
+                        <Popover.Dropdown>
+                            <Text size="sm">
+                                {syncingId === row.id
+                                    ? "Syncing in progress..."
+                                    : "Click to sync this device"}
+                            </Text>
+                        </Popover.Dropdown>
+                    </Popover>
+                );
+            },
         }
+
+
     ];
 
 

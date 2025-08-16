@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Device;
 use App\Models\DeviceType;
 use App\Models\Locations;
+use App\Models\CommandQueues;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,7 @@ class DeviceController extends Controller
                 Route::get('/get-deviceById', 'show')->name('device.show');
                 Route::put('/update-device', 'update')->name('device.update');
                 Route::get('/device-attributes', 'getDeviceAttributes')->name('device.getAttributes');
+                Route::post('/device-sync', 'syncFromDevice')->name('device.sync');
             });
     }
 
@@ -226,6 +228,50 @@ class DeviceController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'error getting deviceAttributes',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * function to sync the device user to app
+     */
+    public function syncFromDevice(Request $request)
+    {
+
+        try {
+
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|exists:device,id',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(),
+                    'error' => 'Validation error',
+                ], 422);
+            }
+
+            $device = Device::where('id', $request->id)->first();
+
+            if (!$device->device_serial_no) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No Serial number for device',
+                ], 422);
+            }
+
+            CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
+
+            return response()->json([
+                'status' => true,
+                'message' => "Sync request has sent",
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'error in Sync',
                 'error' => $e->getMessage(),
             ], 500);
         }
