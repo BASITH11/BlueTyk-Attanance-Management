@@ -1,6 +1,6 @@
 import React from "react";
 import { Paper, FileInput, Box, Button } from "@mantine/core";
-import { IconFileUpload } from "@tabler/icons-react";
+import { IconFileUpload, IconDownload } from "@tabler/icons-react";
 import { useAddBulkMember } from "../../queries/members";
 import { notify } from "@utils/helpers";
 import { useForm } from "@mantine/form";
@@ -43,6 +43,17 @@ const BulkAddMember = () => {
 
     return (
         <Paper p="xl">
+
+            <Box style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+                <Button
+                    leftSection={<IconDownload size={16} />}
+                    component="a"
+                    href="/excels/upload_template.xlsx"      
+                    download="upload_template.xlsx" 
+                >
+                    Download Template
+                </Button>
+            </Box>
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
                 <Box mb="md" w={400} >

@@ -45,7 +45,7 @@ class ImportMemberJob implements ShouldQueue
                 'designation'   => $this->row['designation'],
                 'department_id' => $this->row['department_id'],
                 'status'        => 'pending',
-                'source'        => 'import',
+                'source'        => 'app',
             ]);
 
             // Assign devices

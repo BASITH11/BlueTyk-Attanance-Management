@@ -64,9 +64,9 @@ class ExcelDataImport implements ToCollection, WithHeadingRow
                 $arranged['device_assignments'] = [
                     [
                         'device_id'    => Device::getDeviceByName($row['device']),
-                        'card'         => !empty($row['card_no']),
-                        'finger_print' => !empty($row['finger print']),
-                        'face_id'      => !empty($row['face id']),
+                        'card'         => !empty($row['card_flag']),
+                        'finger_print' => !empty($row['finger_print_flag']),
+                        'face_id'      => !empty($row['face_id_flag']),
                     ]
                 ];
             } else {

@@ -64,6 +64,10 @@ class Device extends Model
     {
 
         $device = self::where('device_name', $deviceName)->first();
-        return $device ? $device->id : null;
+
+        if (!$device) {
+            throw new \Exception("Department '{$deviceName}' not found in database");
+        }
+        return $device->id;
     }
 }
