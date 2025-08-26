@@ -40,11 +40,12 @@ class Members extends Model
 
   public function memberToDevice()
   {
-    return $this->hasMany(MemberToDevice::class , 'member_id');
+    return $this->hasMany(MemberToDevice::class, 'member_id');
   }
 
-  public function department(){
-    return $this->belongsTo(Department::class,'department_id','id');
+  public function department()
+  {
+    return $this->belongsTo(Department::class, 'department_id', 'id');
   }
 
   /**
@@ -52,17 +53,13 @@ class Members extends Model
    */
   public static function addingMemberToDevice($deviceSerialNo)
   {
-    
+
     $memberToDevice = MemberToDevice::with(['member', 'device'])
       ->whereNull('device_user_id')
       ->whereHas('device', function ($q) use ($deviceSerialNo) {
         $q->where('device_serial_no', $deviceSerialNo);
       })
       ->first();
-
-      
-
-     
 
 
     if (!$memberToDevice) {
@@ -72,19 +69,27 @@ class Members extends Model
     $member = $memberToDevice->member;
     $device = $memberToDevice->device;
 
-  
 
     if (!$member || !$device) {
       return; // Missing related member or device
     }
 
-    
 
     if ($device && $device->device_serial_no) {
       $fullname = $member->name;
       $card = $member->card_no;
       $pin = DeviceUserLogs::getNextAvailablePin($device->device_serial_no); // Implement this
-      
+     
+      #if pn already assigned skip
+      if ($pin) {
+        $exists = MemberToDevice::where('device_user_id', $pin)
+          ->where('device_serial_no', $device->device_serial_no)
+          ->exists();
+        if ($exists) {
+          return;
+        }
+      }
+
       $id = time(); // Unique command ID
 
       $kv = [
