@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use App\Models\Device;
 use App\Models\Members;
+use App\Models\CommandQueues;
 use App\Models\MemberToDevice;
 
 
@@ -34,6 +35,7 @@ class ImportMemberJob implements ShouldQueue
     {
         DB::beginTransaction();
         try {
+
             // Create member
             $member = Members::create([
                 'name'          => $this->row['name'],
@@ -64,6 +66,8 @@ class ImportMemberJob implements ShouldQueue
                             'face_id'          => $assignment['face_id'],
                             'status'           => 'pending',
                         ]);
+
+                          CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
                     }
                 }
             }
