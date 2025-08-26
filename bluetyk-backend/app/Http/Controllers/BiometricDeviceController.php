@@ -37,7 +37,7 @@ class BiometricDeviceController extends Controller
         $sn = $request->query('SN');
 
         $command = CommandQueues::where('device_serial_no', $sn)
-            ->where('sent', true)
+            ->where('sent', false)
             ->orderBy('id')
             ->first();
 
