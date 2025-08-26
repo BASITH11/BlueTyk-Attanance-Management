@@ -37,7 +37,7 @@ export const useFetchDevices = () => {
 
 // delete member
 const deleteDevice = async (id) => {
-    const response = await axios.delete(`${prefix}/delete-device/`, {
+    const response = await axios.delete(`${prefix}/delete-device`, {
       data:{ id }
     }
 );

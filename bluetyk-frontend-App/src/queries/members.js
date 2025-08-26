@@ -39,7 +39,7 @@ export const useFetchMembers = () => {
 
 // delete member
 const deleteMember = async (id) => {
-    const response = await axios.delete(`${prefix}/delete-member/`, {
+    const response = await axios.delete(`${prefix}/delete-member`, {
         data: { id }
     }
     );
