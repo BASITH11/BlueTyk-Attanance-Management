@@ -36,23 +36,21 @@ class BiometricDeviceController extends Controller
     {
         $sn = $request->query('SN');
 
-        $commands = CommandQueues::where('device_serial_no', $sn)
-            ->where('sent', false)
+        $command = CommandQueues::where('device_serial_no', $sn)
+            ->where('sent', true)
             ->orderBy('id')
-            ->get();
+            ->first();
 
-
-        if ($commands->isEmpty()) {
+    
+        if (!$command) {
             return response("OK", 200)->header('Content-Type', 'text/plain');
         }
 
-        $response = $commands->pluck('command')->implode("\n");
+        $response = $command->command;
 
         #mark the run commands as true
-        CommandQueues::whereIn('id', $commands->pluck('id'))->update(['sent' => true]);
+        $command->update(['sent' => true]);
         Log::info("Sent Commands", ['response' => $response]);
-
-
 
         return response($response, 200)->header('Content-Type', 'text/plain');
     }

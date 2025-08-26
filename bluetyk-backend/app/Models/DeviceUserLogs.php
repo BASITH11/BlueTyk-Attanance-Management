@@ -36,14 +36,16 @@ class DeviceUserLogs extends Model
     {
         $PendingMembers = MemberToDevice::With(['member', 'device'])->where('status', 'pending')->get();
 
+    
         foreach ($PendingMembers as $member) {
-            $deviceSerialNo = $member->memberToDevice->device->device_serial_no ?? null;
+            $deviceSerialNo = $member->device_serial_no ?? null;
             $deviceUserId = $member->device_user_id ?? 0;
 
             if ($deviceSerialNo && $deviceUserId) {
                 $exists = self::where('pin', $deviceUserId)
                     ->where('device_serial_no', $deviceSerialNo)
                     ->exists();
+           
 
                 if ($exists) {
                     $member->update(['status' => 'success']);
@@ -55,7 +57,7 @@ class DeviceUserLogs extends Model
     /**
      * function to mark the members as success
      */
-    public function updateAllSuccess()
+    public static function updateAllSuccess()
     {
         // Get all members with status 'pending' and eager load their memberToDevice relation
         $members = Members::with('memberToDevice')->where('status', 'pending')->get();
@@ -180,6 +182,8 @@ class DeviceUserLogs extends Model
             $exists = MemberToDevice::where('device_user_id', $pin)
                 ->where('device_serial_no', $deviceSerialNo)
                 ->exists();
+            
+            $departmentId = Department::first()->id ?? null;    
 
             if (!$exists) {
                 $member = Members::create([
@@ -192,6 +196,7 @@ class DeviceUserLogs extends Model
                     'designation'     => null,
                     'status'          => 'success',
                     'source'          => 'device',
+                    'department_id'   => $departmentId,
                 ]);
 
                 MemberToDevice::create([
