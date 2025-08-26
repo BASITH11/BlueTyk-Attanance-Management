@@ -140,6 +140,9 @@ class DeviceUserLogs extends Model
             ->orderBy('pin')
             ->pluck('pin')
             ->toArray();
+            
+
+        
 
         if (empty($pins)) {
             return 1;

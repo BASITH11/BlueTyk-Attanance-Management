@@ -50,14 +50,19 @@ class Members extends Model
   /**
    * Add a single pending member to their assigned device.
    */
-  public static function addingMemberToDevice()
+  public static function addingMemberToDevice($deviceSerialNo)
   {
+    
     $memberToDevice = MemberToDevice::with(['member', 'device'])
       ->whereNull('device_user_id')
-      ->whereHas('device', function ($q) {
-        $q->whereNotNull('device_serial_no');
+      ->whereHas('device', function ($q) use ($deviceSerialNo) {
+        $q->where('device_serial_no', $deviceSerialNo);
       })
       ->first();
+
+      
+
+     
 
 
     if (!$memberToDevice) {
@@ -67,15 +72,19 @@ class Members extends Model
     $member = $memberToDevice->member;
     $device = $memberToDevice->device;
 
+  
+
     if (!$member || !$device) {
       return; // Missing related member or device
     }
 
+    
 
     if ($device && $device->device_serial_no) {
       $fullname = $member->name;
       $card = $member->card_no;
       $pin = DeviceUserLogs::getNextAvailablePin($device->device_serial_no); // Implement this
+      
       $id = time(); // Unique command ID
 
       $kv = [

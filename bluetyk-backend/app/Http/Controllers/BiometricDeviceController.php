@@ -151,7 +151,7 @@ class BiometricDeviceController extends Controller
         }
 
         #Trigger background processes
-        Members::addingMemberToDevice();
+        Members::addingMemberToDevice($sn);
         DeviceUserLogs::updateSuccessStatus();
         DeviceUserLogs::updateDeletedStatus();
         DeviceUserLogs::addUserDeviceToApp();
