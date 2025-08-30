@@ -32,6 +32,7 @@ class ExcelDataImport implements ToCollection, WithHeadingRow
      */
     public function collection(Collection $rows)
     {
+        
         foreach ($rows as $index => $row) {
             $arranged = [];
 
@@ -74,6 +75,8 @@ class ExcelDataImport implements ToCollection, WithHeadingRow
             }
 
             $this->data[] = $arranged;
+
+             // For debugging purposes
         }
     }
 

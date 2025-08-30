@@ -1,34 +1,63 @@
-name: 🚀 Deploy Laravel to VPS
+name: Fullstack Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
-  deploy:
-    name: Deploy to VPS
+  deploy-client1:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Deploy to Client 1
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 139.59.69.27
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 4456
+          script: |
+            echo "Deploying Client 1..."
+            cd /var/www/html/BlueTyk-Pmsapt
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+            git reset --hard
+            git pull origin main
 
-      - name: Deploy via SSH
-        run: |
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
-            cd ${{ secrets.VPS_PATH }} &&
-            git pull origin main &&
-            composer install --no-interaction --prefer-dist --optimize-autoloader &&
-            php artisan migrate --force &&
-            php artisan config:cache &&
-            php artisan route:cache &&
-            php artisan view:cache
-          "
+            # Frontend
+            cd bluetyk-frontend-App
+            npm run build
+
+            # Backend
+            cd ../bluetyk-backend
+            composer update 
+            php artisan optimize
+
+            echo "Deploying Client 1...Completed"
+
+
+  deploy-client2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Client 2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 139.59.69.27
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 4456
+          script: |
+            echo "Deploying Client 2..."
+            cd /var/www/html/BlueTyk-Attendance-Management
+
+            git reset --hard
+            git pull origin main
+
+            # Frontend
+            cd bluetyk-frontend-App
+            npm run build
+
+            # Backend
+            cd ../bluetyk-backend
+            composer update 
+            php artisan optimize
+
+            echo "Deploying Client 2...Completed"

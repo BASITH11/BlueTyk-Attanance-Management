@@ -632,6 +632,7 @@ class MembersController extends Controller
 
             $data = $import->data;
 
+    
             foreach ($data as $row) {
                 ImportMemberJob::dispatch($row);
             }

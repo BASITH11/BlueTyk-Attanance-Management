@@ -263,6 +263,7 @@ class AttandaceController extends Controller
             'name' => $name !== '' ? $name : 'Unknown',
             'device_name' => $memberDevice->device->device_name ?? null,
             'location_name' => $memberDevice->device->deviceToLocation->location_name ?? null,
+            'department_name' => $member->department->department_name ?? null,
           ];
         }
       }

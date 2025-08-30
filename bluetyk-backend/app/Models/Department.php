@@ -22,8 +22,10 @@ class Department extends Model
 
     public static function getDepartmentByName($departmentName)
     {
+        
 
         $department = self::where('department_name', $departmentName)->first();
+    
         if (!$department) {
             throw new \Exception("Department '{$departmentName}' not found in database");
         }

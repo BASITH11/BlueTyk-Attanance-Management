@@ -26,13 +26,14 @@ const TodayNonLogged = () => {
     const { data: deviceAttributes } = useFetchDevicesAttributes();
     const { data: allDevice } = useFetchDevices();
     const locations = deviceAttributes?.locations || [];
-    const { data: allDepartments=[]} = useFetchDepartments();
+    const { data: allDepartments = [] } = useFetchDepartments();
 
 
     const columns = [
         { accessor: "name", label: "Name" },
         { accessor: "device_name", label: "Device" },
         { accessor: "location_name", label: "Location" },
+        { accessor: "department_name", label: "Department" },
     ];
 
 
@@ -143,8 +144,8 @@ const TodayNonLogged = () => {
                     <DataTable
                         data={data}
                         columns={columns}
-                        pageSizeOptions={[5, 10, 25, 50, 100]}
-                        defaultPageSize={5}
+                        pageSizeOptions={[50, 100, 500, 1000]}
+                        defaultPageSize={100}
                     />
                 </Box>
             )}
