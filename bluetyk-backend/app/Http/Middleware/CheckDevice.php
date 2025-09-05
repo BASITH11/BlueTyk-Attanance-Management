@@ -30,7 +30,7 @@ class CheckDevice
         }
 
         $device->update([
-            'last_seen_at' => now(),
+            'last_seen_at' => now()->setTimezone('Asia/Kolkata'),
             'status' => 'online',
         ]);
 
