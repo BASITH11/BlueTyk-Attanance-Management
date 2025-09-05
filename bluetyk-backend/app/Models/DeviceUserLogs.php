@@ -36,7 +36,7 @@ class DeviceUserLogs extends Model
     {
         $PendingMembers = MemberToDevice::With(['member', 'device'])->where('status', 'pending')->get();
 
-    
+
         foreach ($PendingMembers as $member) {
             $deviceSerialNo = $member->device_serial_no ?? null;
             $deviceUserId = $member->device_user_id ?? 0;
@@ -45,7 +45,7 @@ class DeviceUserLogs extends Model
                 $exists = self::where('pin', $deviceUserId)
                     ->where('device_serial_no', $deviceSerialNo)
                     ->exists();
-           
+
 
                 if ($exists) {
                     $member->update(['status' => 'success']);
@@ -129,6 +129,36 @@ class DeviceUserLogs extends Model
         }
     }
 
+    /**
+     * function to update the pending status based on the status 
+     */
+    public static function updatePendingFromDeviceToApp($deviceSerialNo)
+    {
+        $deviceMappings = MemberToDevice::with('member', 'device')->where('status', 'success')->where('device_serial_no', $deviceSerialNo)->get();
+
+        foreach ($deviceMappings as $deviceMapping) {
+
+            $exists = self::where('device_serial_no', $deviceMapping->device->device_serial_no)
+                ->where('pin', $deviceMapping->device_user_id)->exists();
+
+            if (!$exists) {
+                #update member_to_device
+                $deviceMapping->update([
+                    'status' => 'pending',
+                    'device_user_id' => null,
+                ]);
+
+                #update members
+                if ($deviceMapping->member) {
+                    $deviceMapping->member->update([
+                        'status' => 'pending',
+                    ]);
+                }
+            }
+        }
+    }
+
+
 
 
     /**
@@ -140,9 +170,9 @@ class DeviceUserLogs extends Model
             ->orderBy('pin')
             ->pluck('pin')
             ->toArray();
-            
 
-        
+
+
 
         if (empty($pins)) {
             return 1;
@@ -185,8 +215,8 @@ class DeviceUserLogs extends Model
             $exists = MemberToDevice::where('device_user_id', $pin)
                 ->where('device_serial_no', $deviceSerialNo)
                 ->exists();
-            
-            $departmentId = Department::first()->id ?? null;    
+
+            $departmentId = Department::first()->id ?? null;
 
             if (!$exists) {
                 $member = Members::create([
@@ -208,7 +238,7 @@ class DeviceUserLogs extends Model
                     'device_user_id'  => $pin,
                     'device_serial_no' => $deviceSerialNo,
                     'assigned_at' => now(),
-                    'status'=> 'success',
+                    'status' => 'success',
                 ]);
             }
         }

@@ -41,7 +41,7 @@ class BiometricDeviceController extends Controller
             ->orderBy('id')
             ->first();
 
-    
+
         if (!$command) {
             return response("OK", 200)->header('Content-Type', 'text/plain');
         }
@@ -156,6 +156,7 @@ class BiometricDeviceController extends Controller
         DeviceUserLogs::updateDeletedStatus();
         DeviceUserLogs::addUserDeviceToApp();
         DeviceUserLogs::updateAllSuccess();
+        DeviceUserLogs::updatePendingFromDeviceToApp($sn);
 
 
         return response('OK', 200)->header('Content-Type', 'text/plain');
