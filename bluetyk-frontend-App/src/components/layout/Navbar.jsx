@@ -30,7 +30,7 @@ export default function Sidebar() {
                 { label: "Member", to: "/members/member-layout", icon: IconUserPlus },
                 { label: "Device", to: "/device/device-layout", icon: IconDeviceDesktop },
                 { label: "Users", to: "/users/user-layout", icon: IconUsers },
-                { label: "Attendance", to: "/attendance/view-attendence", icon: IconChartBar },
+                { label: "Attendance", to: "/attendance/attendance-layout   ", icon: IconChartBar },
 
             ],
         },

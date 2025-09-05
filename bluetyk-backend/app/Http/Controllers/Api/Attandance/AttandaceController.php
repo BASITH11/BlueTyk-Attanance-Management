@@ -152,7 +152,6 @@ class AttandaceController extends Controller
 
     try {
 
-      $today = Carbon::today();
 
       $query = Attendances::with([
         'memberToDevice.member.department',
@@ -178,9 +177,21 @@ class AttandaceController extends Controller
           $q->where('id', $request->location);
         });
       }
+      # if both from date and to date means then 
+      if ($request->filled('from_date') && $request->filled('to_date')) {
+        $query->whereBetween('timestamp', [
+          Carbon::parse($request->from_date)->startOfDay(),
+          Carbon::parse($request->to_date)->endOfDay(),
+        ]);
+      }
+      #if only the from date means
+      elseif ($request->filled('from_date')) {
+        $query->whereDate('timestamp', carbon::parse($request->from_date));
+      } else {
+        $query->whereDate('timestamp', carbon::today());
+      }
 
       $attendances = $query
-        ->whereDate('timestamp', $today) // filter only today's attendance
         ->orderByDesc('timestamp')
         ->get();
 

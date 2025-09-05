@@ -29,6 +29,7 @@ const Dashboard = () => {
   const device = data?.total_device ?? 0;
   const todaysPunches = data?.todays_punches ?? 0;
   const recentPunches = data?.recent_entries ?? [];
+  console.log(recentPunches);
 
 
   const navigate = useNavigate();
@@ -72,7 +73,7 @@ const Dashboard = () => {
         </Card>
 
 
-        <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Card shadow="sm" padding="lg" radius="md" withBorder  style={{ cursor: "pointer" }} onClick={() => navigate({ to: '/members/member-layout', search: { tab: 'view' } })}>
           <Group justify="space-between">
             <Title fw={500} order={4}>Members</Title>
             <IconUsers size={34} color="var(--app-primary-color)" />
@@ -80,7 +81,7 @@ const Dashboard = () => {
 
           {/* Main numbers row */}
           <Group justify="space-between" mt="sm">
-            <Text size="xl" fw={700} c="green" style={{ cursor: "pointer" }} onClick={() => navigate({ to: '/members/member-layout', search: { tab: 'view' } })}>
+            <Text size="xl" fw={700} c="green" >
               {members}
             </Text>
             <Text size="xl" fw={700} c="red">
@@ -96,7 +97,7 @@ const Dashboard = () => {
 
 
 
-        <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Card shadow="sm" padding="lg" radius="md" withBorder style={{ cursor: "pointer" }} onClick={() => navigate({ to: '/device/device-layout', search: { tab: 'view' } })}>
           <Group justify="space-between">
             <Title fw={500} order={4}>Devices</Title>
             <IconDeviceMobile size={34} color="var(--app-primary-color)" />
@@ -104,7 +105,7 @@ const Dashboard = () => {
 
           {/* Main numbers row */}
           <Group justify="space-between" mt="sm">
-            <Text size="xl" fw={700} c="green" style={{ cursor: "pointer" }} onClick={() => navigate({ to: '/device/device-layout', search: { tab: 'view' } })}>
+            <Text size="xl" fw={700} c="green"  >
               {device}
             </Text>
             <Text size="xl" fw={700} c="red">
@@ -113,12 +114,12 @@ const Dashboard = () => {
           </Group>
 
           <Group justify="space-between" mt="xs">
-            <Text size="xs" c="green">Active</Text>
-            <Text size="xs" c="red">Inactive</Text>
+            <Text size="xs" c="green">Online</Text>
+            <Text size="xs" c="red">Offline</Text>
           </Group>
         </Card>
 
-        <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Card shadow="sm" padding="lg" radius="md" withBorder style={{ cursor: "pointer" }} onClick={() => navigate({ to: '/users/user-layout', search: { tab: 'view' } })}>
           <Group justify="space-between">
             <Title fw={500} order={4}>Users</Title>
             <IconUserShield size={34} color="var(--app-primary-color)" />
@@ -126,7 +127,7 @@ const Dashboard = () => {
 
           {/* Main numbers row */}
           <Group justify="space-between" mt="sm">
-            <Text size="xl" fw={700} c="green" style={{ cursor: "pointer" }} onClick={() => navigate({ to: '/users/user-layout', search: { tab: 'view' } })}>
+            <Text size="xl" fw={700} c="green" >
               {users}
             </Text>
             <Text size="xl" fw={700} c="red">

@@ -87,12 +87,7 @@ const DataTable = ({
 
   return (
     <>
-      <Modal
-        opened={confirmDeleteOpen}
-        onClose={() => setConfirmDeleteOpen(false)}
-        title="Confirm Deletion"
-        centered
-      >
+      <Modal opened={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)} title="Confirm Deletion" centered>
         <Text>Are you sure you want to delete this record?</Text>
         <Group mt="md" justify="flex-end">
           <Button variant="default" onClick={() => setConfirmDeleteOpen(false)}>

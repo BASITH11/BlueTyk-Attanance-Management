@@ -4,6 +4,7 @@ import {
     IconMapPin,
     IconDeviceDesktop,
     IconSearch,
+    IconCalendar,
 } from "@tabler/icons-react";
 import DataTable from "@components/layout/DataTable";
 import { useFetchTodaysAttendance } from "../../queries/attendance";
@@ -13,6 +14,7 @@ import AttendanceAction from "../../components/AttendanceAction";
 import { capitalize } from "../../utils/helpers";
 import { useAuthStore } from "../../config/authStore";
 import { useFetchDepartments } from "../../queries/department";
+import { DateInput } from "@mantine/dates";
 
 
 const ViewTodaysAttendance = () => {
@@ -28,8 +30,7 @@ const ViewTodaysAttendance = () => {
     const { data: deviceAttributes } = useFetchDevicesAttributes();
     const { data: allDevice } = useFetchDevices();
     const locations = deviceAttributes?.locations || [];
-    const { data: allDepartments=[] } = useFetchDepartments();
-
+    const { data: allDepartments = [] } = useFetchDepartments();
 
     const columns = [
         { accessor: "device_name", label: "Device" },
@@ -63,14 +64,7 @@ const ViewTodaysAttendance = () => {
 
         <Paper p="md">
 
-            <ScrollArea
-                type="auto"
-                offsetScrollbars
-                scrollbarSize={6}
-                style={{
-                    minHeight: 60,
-                }}
-            >
+            <ScrollArea type="auto" offsetScrollbars scrollbarSize={6} style={{ minHeight: 60, }}>
                 <Group
                     spacing="md"
                     style={{
@@ -86,8 +80,8 @@ const ViewTodaysAttendance = () => {
                         leftSection={<IconSearch size={16} />}
                         style={{ minWidth: 200 }}
                     />
-                    
-                      <Select
+
+                    <Select
                         placeholder="Select Department"
                         data={allDepartments.map((dep) => ({ value: String(dep.id), label: dep.department_name }))}
                         value={filters.department}
@@ -118,17 +112,30 @@ const ViewTodaysAttendance = () => {
                         style={{ minWidth: 200 }}
                     />
 
-                    <Button
-                        variant="outline"
-                        onClick={() =>
-                            setFilters({
-                                name: "",
-                                location: null,
-                                device: null,
-                            })
-                        }
-                        style={{ minWidth: 100 }}
-                    >
+                    <DateInput
+                        placeholder="From Date"
+                        value={filters.from_date}
+                        onChange={(val) => setFilters({ ...filters, from_date: val })}
+                        leftSection={<IconCalendar size={16} />}
+                        style={{ minWidth: 160 }}
+                    />
+
+                    <DateInput
+                        placeholder="To Date"
+                        value={filters.to_date}
+                        onChange={(val) => setFilters({ ...filters, to_date: val })}
+                        leftSection={<IconCalendar size={16} />}
+                        style={{ minWidth: 160 }}
+                    />
+
+
+
+                    <Button variant="outline" onClick={() => setFilters({
+                        name: "",
+                        location: null,
+                        device: null,
+                    })
+                    } style={{ minWidth: 100 }} >
                         Reset
                     </Button>
                 </Group>

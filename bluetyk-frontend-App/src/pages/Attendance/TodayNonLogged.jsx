@@ -22,7 +22,6 @@ const TodayNonLogged = () => {
         date: ""
     });
     const { data, isFetching } = useFetchTodaysAttendanceNotLogged(filters);
-    console.log(data);
     const { data: deviceAttributes } = useFetchDevicesAttributes();
     const { data: allDevice } = useFetchDevices();
     const locations = deviceAttributes?.locations || [];
@@ -60,7 +59,7 @@ const TodayNonLogged = () => {
                     }}
                 >
                     <DateInput
-                        placeholder="From Date"
+                        placeholder="Date"
                         value={filters.date}
                         onChange={(val) => setFilters({ ...filters, date: val })}
                         leftSection={<IconCalendar size={16} />}
@@ -104,6 +103,8 @@ const TodayNonLogged = () => {
                         leftSection={<IconDeviceDesktop size={16} />}
                         style={{ minWidth: 200 }}
                     />
+
+                    
 
 
                     <Button

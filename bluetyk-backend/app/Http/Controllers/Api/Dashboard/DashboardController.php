@@ -34,10 +34,10 @@ class DashboardController extends Controller
         try {
             $totalUsers = User::count();
             $totalMembers = Members::count();
-            $totalDevices = Device::count();
+            $totalDevices = Device::where('status','online')->count();
             $inactiveUsers = User::onlyTrashed()->count();
             $inactiveMembers = Members::onlyTrashed()->count();
-            $inactiveDevices = Device::onlyTrashed()->count();
+            $inactiveDevices = Device::where('status','offline')->count();
 
             $today = Carbon::today();
 
@@ -62,6 +62,9 @@ class DashboardController extends Controller
             // Map to count per group
             $totalCount = $grouped->count();
 
+
+            
+
             // Latest 10 entries
             $latestEntries = Attendances::with([
                 'memberToDevice.member',
@@ -69,7 +72,6 @@ class DashboardController extends Controller
             ])
                 ->whereDate('timestamp', $today)
                 ->orderByDesc('timestamp')
-                ->limit(10)
                 ->get();
 
             // Optionally, you can reuse your trait for grouping & formatting

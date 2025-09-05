@@ -79,13 +79,16 @@ class Members extends Model
       $fullname = $member->name;
       $card = $member->card_no;
       $pin = DeviceUserLogs::getNextAvailablePin($device->device_serial_no); // Implement this
-     
+
       #if pn already assigned skip
       if ($pin) {
         $exists = MemberToDevice::where('device_user_id', $pin)
           ->where('device_serial_no', $device->device_serial_no)
           ->exists();
+
         if ($exists) {
+          #if same pin occur then sents an gett all command to the device 
+          CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
           return;
         }
       }
