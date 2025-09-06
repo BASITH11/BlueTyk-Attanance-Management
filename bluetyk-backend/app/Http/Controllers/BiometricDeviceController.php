@@ -156,7 +156,7 @@ class BiometricDeviceController extends Controller
         DeviceUserLogs::updateDeletedStatus();
         DeviceUserLogs::addUserDeviceToApp();
         DeviceUserLogs::updateAllSuccess();
-        DeviceUserLogs::updatePendingFromDeviceToApp($sn);
+        // DeviceUserLogs::updatePendingFromDeviceToApp($sn);
 
 
         return response('OK', 200)->header('Content-Type', 'text/plain');
