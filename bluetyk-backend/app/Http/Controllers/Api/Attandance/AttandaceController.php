@@ -191,9 +191,9 @@ class AttandaceController extends Controller
       ]));
 
       // Decide whether to refresh temp table
-      $shouldRefreshTempTable = $filters->filter()->isNotEmpty() || $request->boolean('refresh', false);
+      $shouldRefreshTempTable = $filters->filter()->isNotEmpty()  || $page == 1;
 
-      if ($shouldRefreshTempTable && $page == 1) {
+      if ($shouldRefreshTempTable ) {
         // Fetch raw Attendances
         $query = Attendances::with([
           'memberToDevice.member.department',
