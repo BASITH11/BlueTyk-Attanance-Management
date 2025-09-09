@@ -17,16 +17,19 @@ export const useAddDevice = () => {
 }
 
 //fetch Devices
-const fetchDevices = async () => {
-    const response = await axios.get(`${prefix}/get-device`);
-     
+const fetchDevices = async ({ page = 1, perPage = 100 }) => {
+    const response = await axios.get(`${prefix}/get-device`, {
+        params: { page, per_page: perPage }
+    });
+
     return response.data;
 };
 
-export const useFetchDevices = () => {
+export const useFetchDevices = ({ page = 1, perPage = 100 }) => {
     return useQuery({
-        queryKey: ['devices'],
-        queryFn: fetchDevices,
+        queryKey: ['devices', page, perPage],
+        queryFn: () => fetchDevices({ page, perPage }),
+        keepPreviousData: true,
         cacheTime: 0,                 // Do not cache
         staleTime: 0,                 // Always considered stale
         refetchOnMount: true,        // Refetch on component mount
@@ -38,9 +41,9 @@ export const useFetchDevices = () => {
 // delete member
 const deleteDevice = async (id) => {
     const response = await axios.delete(`${prefix}/delete-device`, {
-      data:{ id }
+        data: { id }
     }
-);
+    );
     return response;
 };
 
@@ -87,7 +90,7 @@ export const useFetchDeviceById = (id) => {
 
 //update device 
 const updateDevice = async (formData) => {
-     formData.append('_method','PUT');
+    formData.append('_method', 'PUT');
     const response = await axios.post(`${prefix}/update-device`, formData,);
     return response;
 };
@@ -102,7 +105,7 @@ export const useUpdateDevice = () => {
 //fetch Devices
 const fetchDevicesAttributes = async () => {
     const response = await axios.get(`${prefix}/device-attributes`);
-     
+
     return response.data;
 };
 
@@ -121,12 +124,12 @@ export const useFetchDevicesAttributes = () => {
 
 // Add a new device
 const syncDevice = async (id) => {
-    const response = await axios.post(`${prefix}/device-sync`,{
-        id:id,
+    const response = await axios.post(`${prefix}/device-sync`, {
+        id: id,
     });
     return response;
     // console.log(response);
-    
+
 }
 export const useSyncDevice = () => {
     return useMutation({

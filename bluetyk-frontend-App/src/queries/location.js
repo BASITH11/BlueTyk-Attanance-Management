@@ -19,16 +19,19 @@ export const useAddLocation = () => {
 
 
 //fetch all locations
-const fetchLocations = async () => {
-    const response = await axios.get(`${prefix}/get-location`);
+const fetchLocations = async ({ page = 1, perPage = 100 }) => {
+    const response = await axios.get(`${prefix}/get-location`, {
+        params: { page, per_page: perPage }
+    });
 
     return response.data;
 };
 
-export const useFetchLocations = () => {
+export const useFetchLocations = ({ page = 1, perPage = 100 }) => {
     return useQuery({
-        queryKey: ['location'],
-        queryFn: fetchLocations,
+        queryKey: ['location', page, perPage],
+        queryFn: () => fetchLocations({ page, perPage }),
+        keepPreviousData: true,
         cacheTime: 0,                 // Do not cache
         staleTime: 0,                 // Always considered stale
         refetchOnMount: true,        // Refetch on component mount
@@ -92,7 +95,7 @@ export const useFetchLocationById = (id) => {
 
 //update location 
 const updateLocation = async (formData) => {
-     formData.append('_method','PUT');
+    formData.append('_method', 'PUT');
     const response = await axios.post(`${prefix}/update-location`, formData,);
     return response;
 };

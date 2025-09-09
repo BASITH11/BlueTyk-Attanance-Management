@@ -26,20 +26,21 @@ export const useFetchAttendance = (filters = {}) => {
     });
 };
 
+
 const fetchMemberLog = async ({ queryKey }) => {
-    const [_key, id] = queryKey;
+    const [_key, memberId, page, perPage] = queryKey;
 
     const response = await axios.get(`${prefix}/get-attendance-by-id`, {
-        params: { id }
+        params: { id: memberId, page, per_page: perPage }
     });
     return response.data;
 };
 
-export const useFetchMemberLog = (id) => {
+export const useFetchMemberLog = ({ memberId, page, perPage }) => {
     return useQuery({
-        queryKey: ['memberLog', id],
+        queryKey: ['memberLog', memberId, page, perPage],
         queryFn: fetchMemberLog,
-        enabled: !!id,
+        enabled: !!memberId,
         cacheTime: 0,
         staleTime: 0,
         refetchOnMount: true,
@@ -53,19 +54,20 @@ export const useFetchMemberLog = (id) => {
 
 
 
-//fetching the members  
+//fetching the attendances 
 const fetchTodaysAttendance = async ({ queryKey }) => {
-    const [_key, filters] = queryKey;
+    const [_key, filters, page, perPage] = queryKey;
     const response = await axios.get(`${prefix}/get-todays-attendance`, {
-        params: filters && Object.keys(filters).length > 0 ? filters : {}
+        params: { ...filters, page, per_page: perPage }
     });
     return response.data;
 };
 
-export const useFetchTodaysAttendance = (filters = {}) => {
+export const useFetchTodaysAttendance = ({ filters = {}, page = 1, perPage = 100, }) => {
     return useQuery({
-        queryKey: ['todaysAttendance', filters],
+        queryKey: ['todaysAttendance', filters, page, perPage],
         queryFn: fetchTodaysAttendance,
+        keepPreviousData: true,
         cacheTime: 0,
         staleTime: 0,
         refetchOnMount: true,
@@ -78,16 +80,16 @@ export const useFetchTodaysAttendance = (filters = {}) => {
 
 //fetching the non-logged of today members  
 const fetchTodaysAttendanceNonLogged = async ({ queryKey }) => {
-    const [_key, filters] = queryKey;
+    const [_key, filters, page, perPage] = queryKey;
     const response = await axios.get(`${prefix}/get-not-logged-today`, {
-        params: filters && Object.keys(filters).length > 0 ? filters : {}
+        params: { ...filters, page, per_page: perPage }
     });
     return response.data;
 };
 
-export const useFetchTodaysAttendanceNotLogged = (filters = {}) => {
+export const useFetchTodaysAttendanceNotLogged = ({ filters = {}, page = 1, perPage = 100, }) => {
     return useQuery({
-        queryKey: ['todaysAttendanceNonLogged', filters],
+        queryKey: ['todaysAttendanceNonLogged', filters, page, perPage],
         queryFn: fetchTodaysAttendanceNonLogged,
         cacheTime: 0,
         staleTime: 0,

@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { Paper, Title, Group, Divider, Center, Skeleton, Flex, Badge, Tooltip, Avatar } from "@mantine/core";
 import { IconUserCog, IconEye, IconListDetails } from "@tabler/icons-react";
 import DataTable from '@components/layout/DataTable';
@@ -13,7 +13,13 @@ import { act } from "react";
 const ViewMembers = () => {
 
 
-  const { data: members = [], isLoading, isError, error } = useFetchMembers();
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(100);
+
+  const { data, isLoading } = useFetchMembers({ page, perPage });
+  const members = data?.data || [];
+  const totalRecords = data?.total || 0;
+
   const { mutate: deleteMutate } = useDeleteMember();
   const navigate = useNavigate();
 
@@ -126,6 +132,11 @@ const ViewMembers = () => {
       <DataTable
         data={members}
         columns={columns}
+        pageSize={perPage}
+        activePage={page}
+        totalRecords={totalRecords}
+        onPageChange={setPage}
+        onPageSizeChange={setPerPage}
         pageSizeOptions={[50, 100, 500, 1000]}
         defaultPageSize={100}
         onEdit={handleEdit}

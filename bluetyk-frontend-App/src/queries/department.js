@@ -19,16 +19,19 @@ export const useAddDepartment = () => {
 
 
 //fetch all departments
-const fetchDepartments = async () => {
-    const response = await axios.get(`${prefix}/get-department`);
+const fetchDepartments = async ({ page = 1, perPage = 100 }) => {
+    const response = await axios.get(`${prefix}/get-department`, {
+        params: { page, per_page: perPage }
+    });
 
     return response.data;
 };
 
-export const useFetchDepartments = () => {
+export const useFetchDepartments = ({ page = 1, perPage = 100 }) => {
     return useQuery({
-        queryKey: ['department'],
-        queryFn: fetchDepartments,
+        queryKey: ['department', page, perPage],
+        queryFn:()=> fetchDepartments({ page, perPage }),
+        keepPreviousData: true,
         cacheTime: 0,                 // Do not cache
         staleTime: 0,                 // Always considered stale
         refetchOnMount: true,        // Refetch on component mount
@@ -92,7 +95,7 @@ export const useFetchDepartmentById = (id) => {
 
 //update department 
 const updateDepartment = async (formData) => {
-     formData.append('_method','PUT');
+    formData.append('_method', 'PUT');
     const response = await axios.post(`${prefix}/update-department`, formData,);
     return response;
 };

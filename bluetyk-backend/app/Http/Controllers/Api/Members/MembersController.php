@@ -160,10 +160,12 @@ class MembersController extends Controller
     /**
      * function for getting all members
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $members = Members::with(['memberToDevice.device', 'department'])->get();
+            $perPage = $request->get('per_page', 100);
+
+            $members = Members::with(['memberToDevice.device', 'department'])->paginate($perPage);
             return response()->json([
                 'status'  => true,
                 'message' => 'Members retrieved successfully',
@@ -632,7 +634,7 @@ class MembersController extends Controller
 
             $data = $import->data;
 
-    
+
             foreach ($data as $row) {
                 ImportMemberJob::dispatch($row);
             }
@@ -641,7 +643,7 @@ class MembersController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'uploaded successfully',
-                'data'=>$data,
+                'data' => $data,
             ], 200);
         } catch (Exception $e) {
             return response()->json([

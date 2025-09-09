@@ -76,11 +76,12 @@ class LocationController extends Controller
      * @param Request any
      */
 
-    public function index()
+    public function index(Request $request)
     {
         try {
 
-            $locations = Locations::all();
+            $perPage = $request->get('per_page',5);
+            $locations = Locations::paginate($perPage);
 
             return response()->json([
                 'status' => true,

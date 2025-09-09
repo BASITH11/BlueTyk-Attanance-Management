@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { Paper, ScrollArea, ThemeIcon, Box, Skeleton, Flex, Badge, Text } from "@mantine/core";
 import { IconCheck, IconX, IconClock } from "@tabler/icons-react";
 import DataTable from '@components/layout/DataTable';
@@ -8,18 +8,25 @@ import { useAuthStore } from "../../config/authStore";
 import { capitalize } from "../../utils/helpers";
 import { useFetchMemberLog } from "../../queries/attendance";
 import { useSearch } from '@tanstack/react-router';
+import AttendanceAction from "../../components/AttendanceAction";
+
 
 
 
 
 const MemberLog = () => {
+
+
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(100);
     const authenticatedUser = useAuthStore.getState();
     const search = useSearch({ from: '/members/member-layout' });
     const memberId = search?.memberId || null;
-    const { data, isLoading } = useFetchMemberLog(memberId);
 
-
-
+    const { data, isLoading } = useFetchMemberLog({ memberId, page, perPage });
+    const memberLog = data?.data || [];
+    console.log(memberLog);
+    const totalRecords = data?.total || 0;
 
     const columns = [
         { accessor: "device_name", label: "Device" },
@@ -37,6 +44,10 @@ const MemberLog = () => {
                     worked_duration={row.worked_duration}
                 />
             ),
+        }, {
+            accessor: "timeLine",
+            label: "Action",
+            render: (_, row) => <AttendanceAction row={row} />,
         }
 
 
@@ -72,10 +83,15 @@ const MemberLog = () => {
         <Paper p="xl">
 
             <DataTable
-                data={data}
+                data={memberLog}
                 columns={columns}
-                pageSizeOptions={[5, 10, 25, 50, 100]}
-                defaultPageSize={5}
+                pageSize={perPage}
+                activePage={page}
+                totalRecords={totalRecords}
+                onPageChange={setPage}
+                onPageSizeChange={setPerPage}
+                pageSizeOptions={[50, 100, 500, 1000]}
+                defaultPageSize={100}
             />
         </Paper>
     );

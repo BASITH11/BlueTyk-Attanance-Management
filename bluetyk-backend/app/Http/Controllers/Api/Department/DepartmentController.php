@@ -75,11 +75,11 @@ class DepartmentController extends Controller
      * @param Request any
      */
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-
-            $departments = Department::all();
+            $perPage = $request->get('per_page',100);
+            $departments = Department::paginate($perPage);
 
             return response()->json([
                 'status' => true,

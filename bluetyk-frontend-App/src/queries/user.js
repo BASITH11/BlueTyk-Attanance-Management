@@ -37,16 +37,19 @@ export const useFetchUserAttributes = () => {
 
 
 //fetch users
-const fetchUsers = async () => {
-    const response = await axios.get(`${prefix}/get-users`);
+const fetchUsers = async ({ page = 1, perPage = 100 }) => {
+    const response = await axios.get(`${prefix}/get-users`, {
+        params: { page, per_page: perPage }
+    });
 
     return response.data;
 };
 
-export const useFetchUsers = () => {
+export const useFetchUsers = ({ page = 1, perPage = 100 }) => {
     return useQuery({
         queryKey: ['users'],
-        queryFn: fetchUsers,
+        queryFn: () => fetchUsers({ page, perPage }),
+        keepPreviousData: true,
         cacheTime: 0,                 // Do not cache
         staleTime: 0,                 // Always considered stale
         refetchOnMount: true,        // Refetch on component mount

@@ -86,11 +86,11 @@ class DeviceController extends Controller
     /**
      * Function to get all devices
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-
-            $devices = Device::with(['deviceToDeviceType', 'deviceToLocation'])->get();
+            $perPage = $request->get('per_page', 5);
+            $devices = Device::with(['deviceToDeviceType', 'deviceToLocation'])->paginate($perPage);
             return response()->json([
                 'status' => true,
                 'message' => "device retrieved successfully",

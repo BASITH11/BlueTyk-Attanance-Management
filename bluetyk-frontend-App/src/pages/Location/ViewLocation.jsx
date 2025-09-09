@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { Paper, Skeleton, Flex } from "@mantine/core";
 import DataTable from '@components/layout/DataTable';
 import { useFetchLocations, useDeleteLocation } from "../../queries/location";
@@ -10,9 +10,12 @@ import { useNavigate } from '@tanstack/react-router';
 
 const ViewLocation = () => {
 
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(100);
 
-    const { data: locations = [], isLoading, isError, error } = useFetchLocations();
-    
+    const { data, isLoading, isError, error } = useFetchLocations({ page, perPage });
+    const locations = data?.data || [];
+    const totalRecords = data?.total || 0;
     const { mutate: deleteMutate } = useDeleteLocation();
     const navigate = useNavigate();
 
@@ -60,7 +63,7 @@ const ViewLocation = () => {
         alert("Deleting: " + ids.join(", "));
     };
 
-   
+
 
     return (
         <Paper p="xl">
@@ -69,12 +72,17 @@ const ViewLocation = () => {
             <DataTable
                 data={locations}
                 columns={columns}
+                pageSize={perPage}
+                activePage={page}
+                totalRecords={totalRecords}
+                onPageChange={setPage}
+                onPageSizeChange={setPerPage}
                 pageSizeOptions={[50, 100, 500, 1000]}
                 defaultPageSize={100}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onBulkDelete={handleBulkDelete}
-                
+
             />
         </Paper>
     );

@@ -11,11 +11,16 @@ import { notify } from "@utils/helpers";
 
 
 
-const ViewMembers = () => {
+const ViewDevices = () => {
+
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(100);
 
     const [syncingId, setSyncingId] = useState(null);
 
-    const { data: devices = [], isLoading, isError, error } = useFetchDevices();
+    const { data, isLoading, isError, error } = useFetchDevices({ page, perPage });
+    const devices = data?.data || [];
+    const totalRecords = data?.total || 0;
     const { mutate: deleteMutate } = useDeleteDevice();
     const { mutate: syncMutate } = useSyncDevice();
     const navigate = useNavigate();
@@ -53,7 +58,7 @@ const ViewMembers = () => {
             accessor: "status",
             label: "Status",
             render: (status) => (
-                <Badge color={status === 'online' ? "green" : "red"} variant="light" style={{ minWidth: 70, textAlign: "center", whiteSpace: "nowrap", flexShrink: 0,}}>
+                <Badge color={status === 'online' ? "green" : "red"} variant="light" style={{ minWidth: 70, textAlign: "center", whiteSpace: "nowrap", flexShrink: 0, }}>
                     {status === 'online' ? "online" : "offline"}
                 </Badge>
             ),
@@ -157,7 +162,12 @@ const ViewMembers = () => {
             <DataTable
                 data={devices}
                 columns={columns}
-                pageSizeOptions={[ 50, 100, 500, 1000]}
+                pageSize={perPage}
+                activePage={page}
+                totalRecords={totalRecords}
+                onPageChange={setPage}
+                onPageSizeChange={setPerPage}
+                pageSizeOptions={[50, 100, 500, 1000]}
                 defaultPageSize={100}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
@@ -174,4 +184,4 @@ const ViewMembers = () => {
     );
 };
 
-export default ViewMembers;
+export default ViewDevices;

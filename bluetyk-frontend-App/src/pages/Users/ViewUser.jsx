@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { Paper, Title, Group, Divider, Center, Skeleton, Flex, Badge } from "@mantine/core";
 import { IconListDetails, IconEye } from "@tabler/icons-react";
 import DataTable from '@components/layout/DataTable';
@@ -10,9 +10,12 @@ import { useNavigate } from '@tanstack/react-router';
 
 
 const ViewUsers = () => {
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(100);
 
-
-    const { data: users = [], isLoading, isError, error } = useFetchUsers();
+    const { data, isLoading, isError, error } = useFetchUsers(page, perPage);
+    const users = data?.data || [];
+    const totalRecords = data?.total || 0;
     const { mutate: deleteMutate } = useDeleteUser();
     const navigate = useNavigate();
 
@@ -77,7 +80,12 @@ const ViewUsers = () => {
             <DataTable
                 data={users}
                 columns={columns}
-                pageSizeOptions={[50, 100,500,1000]}
+                pageSize={perPage}
+                activePage={page}
+                totalRecords={totalRecords}
+                onPageChange={setPage}
+                onPageSizeChange={setPerPage}
+                pageSizeOptions={[50, 100, 500, 1000]}
                 defaultPageSize={100}
                 onEdit={handleEdit}
                 onDelete={handleDelete}

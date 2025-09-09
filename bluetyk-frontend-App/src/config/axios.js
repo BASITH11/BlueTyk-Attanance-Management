@@ -4,7 +4,7 @@ import { invalidateGuard } from "@utils/authGuard";
 import { useAuthStore,useSubscriptionStore } from "@config/authStore";
 import { notify } from "@utils/helpers";
 
-axios.defaults.baseURL = env("API_BASE_URL", "http://127.0.0.1:8000/api/");
+axios.defaults.baseURL = env("API_BASE_URL", "http://192.168.1.100:8000/api/");
 axios.defaults.headers.common["Accept"] = "application/json";
 
 

@@ -8,6 +8,7 @@ use App\Models\Attendances;
 use App\Models\AttendanceWithMember;
 use App\Models\Device;
 use App\Models\Members;
+use App\Models\TempFormattedAttendanceTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -82,6 +83,7 @@ class AttandaceController extends Controller
 
       $data = $this->groupAndFormatAttendance($attendances);
 
+
       return response()->json([
         'status' => true,
         'message' => "Retrieved attendances successfully",
@@ -103,11 +105,13 @@ class AttandaceController extends Controller
    */
   public function getAttendanceById(Request $request)
   {
+
     try {
       $validator = Validator::make($request->all(), [
         'id' => 'required|exists:members,id',
       ]);
 
+      $perPage = $request->get('per_page', 100);
       if ($validator->fails()) {
         return response()->json([
           'status'  => false,
@@ -126,7 +130,32 @@ class AttandaceController extends Controller
 
       $attendances = $query->orderByDesc('timestamp')->get();
 
+
       $data = $this->groupAndFormatAttendance($attendances);
+      TempFormattedAttendanceTable::truncate();
+      collect($data)->chunk(10)->each(function ($chunk) {
+        $insertData = [];
+        foreach ($chunk as $item) {
+          $insertData[] = [
+            'member_name'          => $item['member_name'],
+            'department_name'      => $item['department_name'],
+            'device_name'          => $item['device_name'],
+            'location_name'        => $item['location_name'],
+            'device_serial_no'     => $item['device_serial_no'],
+            'date'                 => Carbon::parse($item['date'])->format('Y-m-d'),
+            'in_time'              => Carbon::parse($item['in_time'])->format('H:i:s'),
+            'out_time'             => $item['out_time'] && $item['out_time'] !== 'Still Working'
+              ? Carbon::parse($item['out_time'])->format('H:i:s')
+              : null,
+            'worked_duration'      => $item['worked_duration'],
+            'total_break_duration' => $item['total_break_duration'],
+            'breaks'               => json_encode($item['breaks']),
+          ];
+        }
+        TempFormattedAttendanceTable::insert($insertData);
+      });
+
+      $data = TempFormattedAttendanceTable::orderByDesc('id')->paginate($perPage);
 
       return response()->json([
         'status' => true,
@@ -146,57 +175,96 @@ class AttandaceController extends Controller
   /**
    * function to get the logs by days
    */
-
   public function getTodaysAllAttendance(Request $request)
   {
-
     try {
+      $perPage = $request->get('per_page', 100);
+      $page    = $request->get('page', 1);
 
+      $filters = collect($request->only([
+        'name',
+        'device',
+        'location',
+        'department',
+        'from_date',
+        'to_date'
+      ]));
 
-      $query = Attendances::with([
-        'memberToDevice.member.department',
-        'memberToDevice.device.deviceToLocation'
-      ]);
+      // Decide whether to refresh temp table
+      $shouldRefreshTempTable = $filters->filter()->isNotEmpty() || $request->boolean('refresh', false);
 
-      if ($request->filled('name')) {
-        $query->whereHas('memberToDevice.member', function ($q) use ($request) {
-          $q->where('name', 'like', '%' . $request->name . '%');
-        });
-      }
-
-      // Filter by Device ID
-      if ($request->filled('device')) {
-        $query->whereHas('memberToDevice.device', function ($q) use ($request) {
-          $q->where('id', $request->device);
-        });
-      }
-
-      // Filter by Location ID
-      if ($request->filled('location')) {
-        $query->whereHas('memberToDevice.device.deviceToLocation', function ($q) use ($request) {
-          $q->where('id', $request->location);
-        });
-      }
-      # if both from date and to date means then 
-      if ($request->filled('from_date') && $request->filled('to_date')) {
-        $query->whereBetween('timestamp', [
-          Carbon::parse($request->from_date)->startOfDay(),
-          Carbon::parse($request->to_date)->endOfDay(),
+      if ($shouldRefreshTempTable && $page == 1) {
+        // Fetch raw Attendances
+        $query = Attendances::with([
+          'memberToDevice.member.department',
+          'memberToDevice.device.deviceToLocation'
         ]);
+
+        if ($request->filled('name')) {
+          $query->whereHas('memberToDevice.member', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->name . '%');
+          });
+        }
+
+        if ($request->filled('device')) {
+          $query->whereHas('memberToDevice.device', function ($q) use ($request) {
+            $q->where('id', $request->device);
+          });
+        }
+
+        if ($request->filled('department')) {
+          $query->whereHas('memberToDevice.member.department', function ($q) use ($request) {
+            $q->where('id', $request->department);
+          });
+        }
+
+        if ($request->filled('location')) {
+          $query->whereHas('memberToDevice.device.deviceToLocation', function ($q) use ($request) {
+            $q->where('id', $request->location);
+          });
+        }
+
+        if ($request->filled('from_date') && $request->filled('to_date')) {
+          $query->whereBetween('timestamp', [
+            Carbon::parse($request->from_date)->startOfDay(),
+            Carbon::parse($request->to_date)->endOfDay(),
+          ]);
+        } elseif ($request->filled('from_date')) {
+          $query->whereDate('timestamp', Carbon::parse($request->from_date));
+        } else {
+          $query->whereDate('timestamp', Carbon::today());
+        }
+
+        $attendances = $query->orderByDesc('timestamp')->get();
+        $data = $this->groupAndFormatAttendance($attendances);
+
+        // Refresh Temp Table
+        TempFormattedAttendanceTable::truncate();
+        collect($data)->chunk(10)->each(function ($chunk) {
+          $insertData = [];
+          foreach ($chunk as $item) {
+            $insertData[] = [
+              'member_name'          => $item['member_name'],
+              'department_name'      => $item['department_name'],
+              'device_name'          => $item['device_name'],
+              'location_name'        => $item['location_name'],
+              'device_serial_no'     => $item['device_serial_no'],
+              'date'                 => Carbon::parse($item['date'])->format('Y-m-d'),
+              'in_time'              => Carbon::parse($item['in_time'])->format('H:i:s'),
+              'out_time'             => $item['out_time'] && $item['out_time'] !== 'Still Working'
+                ? Carbon::parse($item['out_time'])->format('H:i:s')
+                : null,
+              'worked_duration'      => $item['worked_duration'],
+              'total_break_duration' => $item['total_break_duration'],
+              'breaks'               => json_encode($item['breaks']),
+            ];
+          }
+          TempFormattedAttendanceTable::insert($insertData);
+        });
       }
-      #if only the from date means
-      elseif ($request->filled('from_date')) {
-        $query->whereDate('timestamp', carbon::parse($request->from_date));
-      } else {
-        $query->whereDate('timestamp', carbon::today());
-      }
 
-      $attendances = $query
-        ->orderByDesc('timestamp')
-        ->get();
-
-      $data = $this->groupAndFormatAttendance($attendances);
-
+      // Always paginate from temp table
+      $data = TempFormattedAttendanceTable::orderByDesc('id')->paginate($perPage);
 
       return response()->json([
         'status' => true,
@@ -215,35 +283,34 @@ class AttandaceController extends Controller
 
 
   /**
-   * public function to get the Not loges users of today
+   * Get the members who have NOT logged today
    */
   public function getMembersNotLoggedToday(Request $request)
   {
     try {
-
+      $perPage = $request->get('per_page', 100);
       $date = $request->filled('date') ? Carbon::parse($request->date) : Carbon::today();
 
-
-      $attendancesOnDate = Attendances::with('memberToDevice')
+      // Get attendances of that date
+      $attendancesOnDate = Attendances::with('memberToDevice.member')
         ->whereDate('timestamp', $date)
         ->get();
 
-
+      // Extract logged member IDs
       $loggedMemberIds = $attendancesOnDate
         ->pluck('memberToDevice.*.member.id')
         ->flatten()
         ->unique()
         ->filter();
 
-
+      // Query members who are NOT in the logged list
       $query = Members::whereNotIn('id', $loggedMemberIds)
-        ->with('memberToDevice.device.deviceToLocation');
+        ->with(['memberToDevice.device.deviceToLocation', 'department']);
 
-
+      // Filters
       if ($request->filled('name')) {
         $query->where('name', 'like', '%' . $request->name . '%');
       }
-
 
       if ($request->filled('device')) {
         $query->whereHas('memberToDevice.device', function ($q) use ($request) {
@@ -252,7 +319,7 @@ class AttandaceController extends Controller
       }
 
       if ($request->filled('department')) {
-        $query->whereHas('memberToDevice.member.department', function ($q) use ($request) {
+        $query->whereHas('department', function ($q) use ($request) {
           $q->where('id', $request->department);
         });
       }
@@ -263,32 +330,39 @@ class AttandaceController extends Controller
         });
       }
 
-      $membersNotLogged = $query->get();
+      // Paginate
+      $membersNotLogged = $query->paginate($perPage);
 
-
-      $formatted = [];
-      foreach ($membersNotLogged as $member) {
+      // Transform collection inside pagination
+      $membersNotLogged->getCollection()->transform(function ($member) {
+        $formatted = [];
         foreach ($member->memberToDevice as $memberDevice) {
           $name = trim($member->name);
           $formatted[] = [
-            'name' => $name !== '' ? $name : 'Unknown',
-            'device_name' => $memberDevice->device->device_name ?? null,
-            'location_name' => $memberDevice->device->deviceToLocation->location_name ?? null,
+            'name'           => $name !== '' ? $name : 'Unknown',
+            'device_name'    => $memberDevice->device->device_name ?? null,
+            'location_name'  => $memberDevice->device->deviceToLocation->location_name ?? null,
             'department_name' => $member->department->department_name ?? null,
           ];
         }
-      }
+        return $formatted;
+      });
+
+      // Flatten because each member may expand to multiple devices
+      $membersNotLogged->setCollection(
+        $membersNotLogged->getCollection()->flatten(1)
+      );
 
       return response()->json([
-        'status' => true,
-        'data' => $formatted,
+        'status'  => true,
+        'data'    => $membersNotLogged,
         'message' => 'Members not logged on ' . $date->toDateString() . ' loaded successfully',
       ]);
     } catch (Exception $e) {
       return response()->json([
-        'status' => false,
+        'status'  => false,
         'message' => 'Something went wrong',
-        'error' => $e->getMessage(),
+        'error'   => $e->getMessage(),
       ], 500);
     }
   }

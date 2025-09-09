@@ -18,15 +18,18 @@ export const useAddMember = () => {
 
 
 //fetching the members  
-const fetchMembers = async () => {
-    const response = await axios.get(`${prefix}/get-members`);
+const fetchMembers = async ({ page = 1, perPage = 100 }) => {
+    const response = await axios.get(`${prefix}/get-members`,{
+         params: { page, per_page: perPage }
+    });
     return response.data;
 };
 
-export const useFetchMembers = () => {
+export const useFetchMembers = ({ page = 1, perPage = 100 }) => {
     return useQuery({
-        queryKey: ['members'],
-        queryFn: fetchMembers,
+        queryKey: ['members',page, perPage],
+        queryFn: () => fetchMembers({ page, perPage }),
+        keepPreviousData: true,
         cacheTime: 0,                 // Do not cache
         staleTime: 0,                 // Always considered stale
         refetchOnMount: true,        // Refetch on component mount

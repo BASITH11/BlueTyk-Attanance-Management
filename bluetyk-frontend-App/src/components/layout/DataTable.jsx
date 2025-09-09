@@ -8,7 +8,6 @@ import {
   Pagination,
   Group,
   Text,
-  Paper,
   Modal,
   Button,
   TableScrollContainer,
@@ -25,51 +24,35 @@ const DataTable = ({
   data = [],
   columns = [],
   pageSizeOptions = [5, 10, 15, 20],
-  defaultPageSize = 5,
+  pageSize,
+  activePage,
+  totalRecords,
+  onPageChange,
+  onPageSizeChange,
   onEdit,
   onDelete,
   onBulkDelete,
   actionOptions = [],
 }) => {
   const [search, setSearch] = useState("");
-  const [activePage, setActivePage] = useState(1);
-  const [pageSize, setPageSize] = useState(
-    pageSizeOptions.includes(defaultPageSize)
-      ? defaultPageSize
-      : pageSizeOptions[0]
-  );
   const [selectedIds, setSelectedIds] = useState([]);
-
-  const getNestedValue = (obj, path) => {
-    return path.split('.').reduce((acc, part) => acc?.[part], obj);
-  };
-
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
 
+  const getNestedValue = (obj, path) => {
+    return path.split(".").reduce((acc, part) => acc?.[part], obj);
+  };
+
   const lowerSearch = search.trim().toLowerCase();
 
-  const reorderedData = [...data].sort((a, b) => {
-    const aMatch = Object.values(a).some((val) =>
-      String(val).toLowerCase().includes(lowerSearch)
-    );
-    const bMatch = Object.values(b).some((val) =>
-      String(val).toLowerCase().includes(lowerSearch)
-    );
-    return bMatch - aMatch;
-  });
-
-  const anyMatch = reorderedData.some((row) =>
-    Object.values(row).some((val) =>
-      String(val).toLowerCase().includes(lowerSearch)
-    )
-  );
-
-  const totalPages = Math.ceil(reorderedData.length / pageSize);
-  const paginatedData = reorderedData.slice(
-    (activePage - 1) * pageSize,
-    activePage * pageSize
-  );
+  // Filter data by search if any (client-side)
+  const filteredData = search
+    ? data.filter((row) =>
+        Object.values(row).some((val) =>
+          String(val).toLowerCase().includes(lowerSearch)
+        )
+      )
+    : data;
 
   const isSelected = (id) => selectedIds.includes(id);
   const toggleSelect = (id) =>
@@ -85,9 +68,17 @@ const DataTable = ({
   const showActions = onEdit || onDelete || actionOptions.length > 0;
   const showCheckboxes = !!onBulkDelete;
 
+  // Total pages for server-side pagination
+  const totalPages = Math.ceil(totalRecords / pageSize);
+
   return (
     <>
-      <Modal opened={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)} title="Confirm Deletion" centered>
+      <Modal
+        opened={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        title="Confirm Deletion"
+        centered
+      >
         <Text>Are you sure you want to delete this record?</Text>
         <Group mt="md" justify="flex-end">
           <Button variant="default" onClick={() => setConfirmDeleteOpen(false)}>
@@ -96,9 +87,7 @@ const DataTable = ({
           <Button
             color="red"
             onClick={() => {
-              if (rowToDelete) {
-                onDelete?.(rowToDelete);
-              }
+              if (rowToDelete) onDelete?.(rowToDelete);
               setConfirmDeleteOpen(false);
               setRowToDelete(null);
             }}
@@ -108,36 +97,25 @@ const DataTable = ({
         </Group>
       </Modal>
 
-      {/* <Paper p="xl" withBorder style={{ borderRadius: "10px" }}> */}
+      {/* Top Controls */}
       <Group justify="space-between" mb="md">
         <Select
           label="Rows per page"
-          data={pageSizeOptions.map((n) => ({
-            value: `${n}`,
-            label: `${n}`,
-          }))}
+          data={pageSizeOptions.map((n) => ({ value: `${n}`, label: `${n}` }))}
           value={pageSize.toString()}
           onChange={(val) => {
-            setPageSize(Number(val));
-            setActivePage(1);
+            onPageSizeChange?.(Number(val));
+            onPageChange?.(1); // reset to page 1
           }}
           maw={100}
         />
-
         <TextInput
           placeholder="Search..."
           value={search}
-          onChange={(e) => {
-            setSearch(e.currentTarget.value);
-            setActivePage(1);
-          }}
+          onChange={(e) => setSearch(e.currentTarget.value)}
           rightSection={
             search && (
-              <ActionIcon
-                size="sm"
-                onClick={() => setSearch("")}
-                variant="transparent"
-              >
+              <ActionIcon size="sm" onClick={() => setSearch("")} variant="transparent">
                 <IconX size={16} />
               </ActionIcon>
             )
@@ -150,12 +128,10 @@ const DataTable = ({
           {selectedIds.length} selected
         </Text>
       )}
+
+      {/* Table */}
       <TableScrollContainer>
-        <Table
-          withRowBorders
-          highlightOnHover
-          style={{ borderRadius: "10px" }}
-        >
+        <Table withRowBorders highlightOnHover style={{ borderRadius: "10px" }}>
           <Table.Thead>
             <Table.Tr>
               {showCheckboxes && (
@@ -180,15 +156,17 @@ const DataTable = ({
                 </Table.Th>
               )}
               {columns.map((col) => (
-                <Table.Th key={col.accessor} style={{ textAlign: "center" }}>{col.label}</Table.Th>
+                <Table.Th key={col.accessor} style={{ textAlign: "center" }}>
+                  {col.label}
+                </Table.Th>
               ))}
               {showActions && <Table.Th align="right">Actions</Table.Th>}
             </Table.Tr>
           </Table.Thead>
 
           <Table.Tbody>
-            {anyMatch ? (
-              paginatedData.map((row) => (
+            {filteredData.length > 0 ? (
+              filteredData.map((row) => (
                 <Table.Tr key={row.id}>
                   {showCheckboxes && (
                     <Table.Td style={{ textAlign: "center" }}>
@@ -236,11 +214,7 @@ const DataTable = ({
                             </Menu.Item>
                           )}
                           {actionOptions.map((action, idx) => (
-                            <Menu.Item
-                              key={idx}
-                              leftSection={action.icon}
-                              onClick={() => action.onClick(row)}
-                            >
+                            <Menu.Item key={idx} leftSection={action.icon} onClick={() => action.onClick(row)}>
                               {action.label}
                             </Menu.Item>
                           ))}
@@ -253,11 +227,7 @@ const DataTable = ({
             ) : (
               <Table.Tr>
                 <Table.Td
-                  colSpan={
-                    columns.length +
-                    (showActions ? 1 : 0) +
-                    (showCheckboxes ? 1 : 0)
-                  }
+                  colSpan={columns.length + (showActions ? 1 : 0) + (showCheckboxes ? 1 : 0)}
                   align="center"
                 >
                   No data found.
@@ -269,24 +239,21 @@ const DataTable = ({
       </TableScrollContainer>
 
       {/* Pagination */}
-      <Group justify="space-between" mt="md" align="center">
-        <Text size="sm" color="dimmed">
-          Showing {(activePage - 1) * pageSize + 1} to{" "}
-          {Math.min(activePage * pageSize, reorderedData.length)} of{" "}
-          {reorderedData.length} records
-        </Text>
-
-        {totalPages > 1 && (
+      {totalRecords > pageSize && (
+        <Group justify="space-between" mt="md" align="center">
+          <Text size="sm" color="dimmed">
+            Showing {(activePage - 1) * pageSize + 1} to{" "}
+            {Math.min(activePage * pageSize, totalRecords)} of {totalRecords} records
+          </Text>
           <Pagination
             total={totalPages}
             value={activePage}
-            onChange={setActivePage}
+            onChange={onPageChange}
             siblings={1}
             boundaries={1}
           />
-        )}
-      </Group>
-      {/* </Paper> */}
+        </Group>
+      )}
     </>
   );
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { Paper, Skeleton, Flex } from "@mantine/core";
 import DataTable from '@components/layout/DataTable';
 import { useFetchDepartments, useDeleteDepartment } from "../../queries/department";
@@ -10,8 +10,12 @@ import { useNavigate } from '@tanstack/react-router';
 
 const ViewDepartment = () => {
 
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(100);
 
-    const { data: departments = [], isLoading, isError, error } = useFetchDepartments();
+    const { data, isLoading, isError, error } = useFetchDepartments({ page, perPage });
+    const departments = data?.data || [];
+    const totalRecords = data?.total || 0;
     const { mutate: deleteMutate } = useDeleteDepartment();
     const navigate = useNavigate();
 
@@ -68,6 +72,11 @@ const ViewDepartment = () => {
             <DataTable
                 data={departments}
                 columns={columns}
+                pageSize={perPage}
+                activePage={page}
+                totalRecords={totalRecords}
+                onPageChange={setPage}
+                onPageSizeChange={setPerPage}
                 pageSizeOptions={[50, 100, 500, 1000]}
                 defaultPageSize={100}
                 onEdit={handleEdit}

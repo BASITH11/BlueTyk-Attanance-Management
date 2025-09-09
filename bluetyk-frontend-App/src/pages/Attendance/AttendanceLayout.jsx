@@ -2,12 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 import {
     Paper,
-    Box,
     Tabs,
     Text,
     Group,
     Title,
-    rem
 } from '@mantine/core'
 
 import {

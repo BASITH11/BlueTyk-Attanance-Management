@@ -18,19 +18,27 @@ import { DateInput } from "@mantine/dates";
 
 
 const ViewTodaysAttendance = () => {
+
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(100);
     const [filters, setFilters] = useState({
         name: "",
         location: "",
         device: "",
-        from_date: "",
-        to_date: ""
+        from_date:"",
+        to_date: "",
+        department: "",
     });
     const authenticatedUser = useAuthStore.getState();
-    const { data, isFetching } = useFetchTodaysAttendance(filters);
+    const { data, isFetching } = useFetchTodaysAttendance({ filters, page, perPage, });
+    const attendances = data?.data ?? [];
+    const totalRecords = data?.total || 0;
     const { data: deviceAttributes } = useFetchDevicesAttributes();
-    const { data: allDevice } = useFetchDevices();
+    const { data: allDeviceResponse = {} } = useFetchDevices({ page: 1, perPage: 100 });
+    const allDevice = allDeviceResponse?.data || [];
     const locations = deviceAttributes?.locations || [];
-    const { data: allDepartments = [] } = useFetchDepartments();
+    const { data: allDepartmentsResponse = {} } = useFetchDepartments({ page: 1, perPage: 100 });
+    const allDepartments = allDepartmentsResponse?.data || [];
 
     const columns = [
         { accessor: "device_name", label: "Device" },
@@ -130,45 +138,58 @@ const ViewTodaysAttendance = () => {
 
 
 
-                    <Button variant="outline" onClick={() => setFilters({
-                        name: "",
-                        location: null,
-                        device: null,
-                    })
-                    } style={{ minWidth: 100 }} >
+                    <Button variant="outline" onClick={() => {
+                        setFilters({
+                            name: "",
+                            location: null,
+                            device: null,
+                            department: null,
+                            from_date: "",
+                            to_date: "",
+                        });
+
+                    }}
+                        style={{ minWidth: 100 }} >
                         Reset
                     </Button>
                 </Group>
             </ScrollArea>
 
 
-            {isFetching ? (
-                <>
-                    {/* Row of Skeletons - Top Row */}
-                    <Flex justify="space-between" mt={100}>
-                        <Skeleton height={30} width="20%" />
-                        <Skeleton height={30} width="20%" />
-                    </Flex>
+            {
+                isFetching ? (
+                    <>
+                        {/* Row of Skeletons - Top Row */}
+                        <Flex justify="space-between" mt={100}>
+                            <Skeleton height={30} width="20%" />
+                            <Skeleton height={30} width="20%" />
+                        </Flex>
 
-                    {/* Table Skeleton Rows */}
-                    <Box mt={30}>
-                        <Skeleton height={40} mb="sm" />
-                        <Skeleton height={40} mb="sm" />
-                        <Skeleton height={40} mb="sm" />
-                        <Skeleton height={40} mb="sm" />
+                        {/* Table Skeleton Rows */}
+                        <Box mt={30}>
+                            <Skeleton height={40} mb="sm" />
+                            <Skeleton height={40} mb="sm" />
+                            <Skeleton height={40} mb="sm" />
+                            <Skeleton height={40} mb="sm" />
+                        </Box>
+                    </>
+                ) : (
+                    <Box mt={50}>
+                        <DataTable
+                            data={attendances}
+                            columns={columns}
+                            pageSize={perPage}
+                            activePage={page}
+                            totalRecords={totalRecords}
+                            onPageChange={setPage}
+                            onPageSizeChange={setPerPage}
+                            pageSizeOptions={[50, 100, 500, 1000]}
+                            defaultPageSize={100}
+                        />
                     </Box>
-                </>
-            ) : (
-                <Box mt={50}>
-                    <DataTable
-                        data={data}
-                        columns={columns}
-                        pageSizeOptions={[50, 100, 500, 1000]}
-                        defaultPageSize={100}
-                    />
-                </Box>
-            )}
-        </Paper>
+                )
+            }
+        </Paper >
 
     );
 };

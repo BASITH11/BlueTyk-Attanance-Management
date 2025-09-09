@@ -25,6 +25,9 @@ import { useForm } from "@mantine/form";
 
 const AddMembers = () => {
 
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(100);
+
     const [profileImage, setProfileImage] = useState(ProfilePlaceholder);
     const fileInputRef = useRef(null);
     const [deviceAssignments, setDeviceAssignments] = useState({});
@@ -50,8 +53,10 @@ const AddMembers = () => {
         setDeviceAssignments(updatedAssignments);
     };
 
-    const { data: devices = [], isLoading, isError, error } = useFetchDevices();
-    const { data: departments = [] } = useFetchDepartments();
+    const { data: deviceResponse = {}, isLoading, isError, error } = useFetchDevices({ page, perPage });
+    const devices = deviceResponse.data || [];
+    const { data: departmentResponse = {} } = useFetchDepartments({ page, perPage });
+     const departments = departmentResponse.data || [];
 
 
     const deviceOptions = devices.map(device => ({
@@ -59,9 +64,9 @@ const AddMembers = () => {
         label: `${device.device_name} (${device.device_to_location?.location_name || 'No Location'})`,
     }));
 
-    const departmentOptions = departments.map(department=> ({
+    const departmentOptions = departments.map(department => ({
         value: String(department.id),
-        label: String(department.department_name|| 'No department'),
+        label: String(department.department_name || 'No department'),
     }));
 
 
@@ -76,7 +81,7 @@ const AddMembers = () => {
             address: '',
             image: '',
             deviceId: [],
-            departmentId:'',
+            departmentId: '',
         },
         validate: {
             name: (value) => (value.length < 1 ? 'Name is required' : null),
@@ -111,7 +116,7 @@ const AddMembers = () => {
         formData.append("address", values.address || "");
         formData.append("date_of_birth", values.dateOfBirth || "");
         formData.append("image", values.image || "");
-        formData.append("department_id",values.departmentId || "");
+        formData.append("department_id", values.departmentId || "");
 
         // Device assignments
         values.deviceId.forEach((id, index) => {
@@ -246,7 +251,7 @@ const AddMembers = () => {
                                 {...form.getInputProps("designation")}
                             />
 
-                           <Select
+                            <Select
                                 label="Select Department"
                                 withAsterisk
                                 placeholder="Choose a department"
@@ -255,7 +260,7 @@ const AddMembers = () => {
                                 leftSection={<IconBuilding size={18} />}
                                 {...form.getInputProps("departmentId")}
                             />
-                            
+
 
 
                             <MultiSelect

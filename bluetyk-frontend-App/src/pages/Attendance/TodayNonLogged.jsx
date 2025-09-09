@@ -15,17 +15,23 @@ import { useFetchDepartments } from "../../queries/department";
 
 
 const TodayNonLogged = () => {
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(100);
     const [filters, setFilters] = useState({
         name: "",
         location: "",
         device: "",
         date: ""
     });
-    const { data, isFetching } = useFetchTodaysAttendanceNotLogged(filters);
+    const { data, isFetching } = useFetchTodaysAttendanceNotLogged({ filters, page, perPage });
+    const nonLoggedMembers = data?.data ?? [];
+    const totalRecords = data?.total || 0;
     const { data: deviceAttributes } = useFetchDevicesAttributes();
-    const { data: allDevice } = useFetchDevices();
+    const { data: allDeviceResponse = {} } = useFetchDevices({ page: 1, perPage: 100 });
+    const allDevice = allDeviceResponse?.data || [];
     const locations = deviceAttributes?.locations || [];
-    const { data: allDepartments = [] } = useFetchDepartments();
+    const { data: allDepartmentsResponse = {} } = useFetchDepartments({ page: 1, perPage: 100 });
+    const allDepartments = allDepartmentsResponse?.data || [];
 
 
     const columns = [
@@ -104,7 +110,7 @@ const TodayNonLogged = () => {
                         style={{ minWidth: 200 }}
                     />
 
-                    
+
 
 
                     <Button
@@ -143,8 +149,13 @@ const TodayNonLogged = () => {
             ) : (
                 <Box mt={50}>
                     <DataTable
-                        data={data}
+                        data={nonLoggedMembers}
                         columns={columns}
+                        pageSize={perPage}
+                        activePage={page}
+                        totalRecords={totalRecords}
+                        onPageChange={setPage}
+                        onPageSizeChange={setPerPage}
                         pageSizeOptions={[50, 100, 500, 1000]}
                         defaultPageSize={100}
                     />
