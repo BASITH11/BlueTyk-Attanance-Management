@@ -3,12 +3,25 @@
 namespace App;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 trait AttendanceFormatter
 {
     public function groupAndFormatAttendance($attendances)
     {
-        $attendances = $attendances->filter(fn($attendance) => $attendance->memberToDevice->isNotEmpty());
+         $attendances = $attendances->filter(function ($attendance) {
+                $relation = $attendance->memberToDevice->first();
+                if (!$relation || !$relation->member) {
+                    // Log::warning('Invalid attendance relation', [
+                    //     'attendance_id' => $attendance->id,
+                    //     'device_serial_no' => $attendance->device_serial_no,
+                    //     'timestamp' => $attendance->timestamp,
+                    // ]);
+                    return false; // remove invalid attendance
+                }
+                return true; // keep valid attendance
+            });
+
 
         # Group by member + device + date
         $grouped = $attendances->groupBy(function ($attendance) {

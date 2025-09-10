@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use App\Models\Attendances;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -34,10 +35,10 @@ class DashboardController extends Controller
         try {
             $totalUsers = User::count();
             $totalMembers = Members::count();
-            $totalDevices = Device::where('status','online')->count();
+            $totalDevices = Device::where('status', 'online')->count();
             $inactiveUsers = User::onlyTrashed()->count();
             $inactiveMembers = Members::onlyTrashed()->count();
-            $inactiveDevices = Device::where('status','offline')->count();
+            $inactiveDevices = Device::where('status', 'offline')->count();
 
             $today = Carbon::today();
 
@@ -48,22 +49,35 @@ class DashboardController extends Controller
                 ->whereDate('timestamp', $today)
                 ->get();
 
-            // Filter out records without memberToDevice
-            $attendances = $attendances->filter(fn($attendance) => $attendance->memberToDevice->isNotEmpty());
+
+            $attendances = $attendances->filter(function ($attendance) {
+                $relation = $attendance->memberToDevice->first();
+                if (!$relation || !$relation->member) {
+                    // Log::warning('Invalid attendance relation', [
+                    //     'attendance_id' => $attendance->id,
+                    //     'device_serial_no' => $attendance->device_serial_no,
+                    //     'timestamp' => $attendance->timestamp,
+                    // ]);
+                    return false;
+                }
+                return true;
+            });
+
+
 
             // Group by member + device + date
             $grouped = $attendances->groupBy(function ($attendance) {
                 $relation = $attendance->memberToDevice->first();
-                return $relation->member->id . '-' .
+
+                $memberId = optional($relation->member)->id; // safe access
+
+                return $memberId . '-' .
                     $attendance->device_serial_no . '-' .
                     Carbon::parse($attendance->timestamp)->format('Y-m-d');
             });
 
             // Map to count per group
             $totalCount = $grouped->count();
-
-
-            
 
             // Latest 10 entries
             $latestEntries = Attendances::with([
@@ -74,8 +88,10 @@ class DashboardController extends Controller
                 ->orderByDesc('timestamp')
                 ->get();
 
+
             // Optionally, you can reuse your trait for grouping & formatting
             $formattedEntries = $this->groupAndFormatAttendance($latestEntries);
+            $formattedEntries = $formattedEntries->take(10);
 
             return response()->json([
                 'status' => true,

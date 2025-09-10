@@ -111,6 +111,7 @@ class DeviceUserLogs extends Model
                         #Mark device mapping as deleted if missing in logs
                         if ($deviceMapping->status !== 'deleted') {
                             $deviceMapping->update(['status' => 'deleted']);
+                            $deviceMapping->delete();
                         }
                     }
                 }
@@ -124,6 +125,7 @@ class DeviceUserLogs extends Model
             } else {
                 if ($member->status !== 'deleted') {
                     $member->update(['status' => 'deleted']);
+                    $member->delete();
                 }
             }
         }
