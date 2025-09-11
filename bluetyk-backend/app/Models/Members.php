@@ -62,6 +62,7 @@ class Members extends Model
       ->first();
 
 
+
     if (!$memberToDevice) {
       return; // No pending members found
     }
@@ -85,6 +86,9 @@ class Members extends Model
         $exists = MemberToDevice::where('device_user_id', $pin)
           ->where('device_serial_no', $device->device_serial_no)
           ->exists();
+
+
+
 
         if ($exists) {
           #if same pin occur then sents an gett all command to the device 

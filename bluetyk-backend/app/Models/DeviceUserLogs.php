@@ -168,25 +168,25 @@ class DeviceUserLogs extends Model
      */
     public static function getNextAvailablePin($deviceSerialNo)
     {
-        $pins = self::where('device_serial_no', $deviceSerialNo)
-            ->orderBy('pin')
-            ->pluck('pin')
-            ->toArray();
+        $pin = self::where('device_serial_no', $deviceSerialNo)->max('pin');
+        // ->orderBy('pin')
+        // ->pluck('pin')
+        // ->toArray();
+
+        $expectedPin = $pin + 1;
 
 
+        // if (empty($pins)) {
+        //     return 1;
+        // }
 
-
-        if (empty($pins)) {
-            return 1;
-        }
-
-        $expectedPin = 1;
-        foreach ($pins as $pin) {
-            if ((int)$pin !== $expectedPin) {
-                return $expectedPin;
-            }
-            $expectedPin++;
-        }
+        // $expectedPin = 1;
+        // foreach ($pins as $pin) {
+        //     if ((int)$pin !== $expectedPin) {
+        //         return $expectedPin;
+        //     }
+        //     $expectedPin++;
+        // }
 
         return $expectedPin;
     }
