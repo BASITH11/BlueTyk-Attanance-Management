@@ -34,10 +34,16 @@ class DashboardController extends Controller
     {
         try {
             $totalUsers = User::count();
-            $totalMembers = Members::count();
+            $totalMembers = Members::whereHas('memberToDevice', function ($query) {
+                $query->where('status', 'success');
+            })
+                ->count();
             $totalDevices = Device::where('status', 'online')->count();
             $inactiveUsers = User::onlyTrashed()->count();
-            $inactiveMembers = Members::onlyTrashed()->count();
+            $inactiveMembers = Members::whereHas('memberToDevice', function ($query) {
+                $query->where('status', 'pending');
+            })
+                ->count();
             $inactiveDevices = Device::where('status', 'offline')->count();
 
             $today = Carbon::today();
