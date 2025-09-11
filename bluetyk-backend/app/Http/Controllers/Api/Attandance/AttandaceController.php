@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Validator;
 use Exception;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Exports\AllClassesAttendanceExport;
+use App\Exports\AttendanceByDate;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AttandaceController extends Controller
 {
@@ -30,6 +33,8 @@ class AttandaceController extends Controller
         Route::get('get-attendance-by-id', 'getAttendanceById')->name('get.attenandancebyid');
         Route::get('get-todays-attendance', 'getTodaysAllAttendance')->name('get.todays.allAttendance');
         Route::get('get-not-logged-today', 'getMembersNotLoggedToday')->name('attenance.notLoggedToday');
+        Route::get('download-attendance', 'exportAttendance')->name('attendance.download');
+        Route::get('download-attendance-by-date', 'downloadAttendanceByDate')->name('downloadAttendanceByDate.download');
       });
   }
 
@@ -137,6 +142,7 @@ class AttandaceController extends Controller
         $insertData = [];
         foreach ($chunk as $item) {
           $insertData[] = [
+            'member_id'            => $item['member_id'],
             'member_name'          => $item['member_name'],
             'department_name'      => $item['department_name'],
             'device_name'          => $item['device_name'],
@@ -193,7 +199,7 @@ class AttandaceController extends Controller
       // Decide whether to refresh temp table
       $shouldRefreshTempTable = $filters->filter()->isNotEmpty()  || $page == 1;
 
-      if ($shouldRefreshTempTable ) {
+      if ($shouldRefreshTempTable) {
         // Fetch raw Attendances
         $query = Attendances::with([
           'memberToDevice.member.department',
@@ -244,6 +250,7 @@ class AttandaceController extends Controller
           $insertData = [];
           foreach ($chunk as $item) {
             $insertData[] = [
+              'member_id'            => $item['member_id'],
               'member_name'          => $item['member_name'],
               'department_name'      => $item['department_name'],
               'device_name'          => $item['device_name'],
@@ -365,5 +372,31 @@ class AttandaceController extends Controller
         'error'   => $e->getMessage(),
       ], 500);
     }
+  }
+
+
+  /**
+   * download the excel file 
+   */
+
+  public function exportAttendance(Request $request)
+  {
+
+    $fileName = 'Attendance_' . date('Y-m-d') . '.xlsx';
+    return Excel::download(new AllClassesAttendanceExport, $fileName);
+  }
+
+  /**
+   * download the excel of attendance by date
+   */
+
+  public function downloadAttendanceByDate(Request $request)
+  {
+    $date = $request->get('date', Carbon::today()->toDateString());
+    $fileName = "Attendance_By_Department_{$date}.xlsx";
+    return Excel::download(
+      new AttendanceByDate($date),
+      $fileName
+    );
   }
 }

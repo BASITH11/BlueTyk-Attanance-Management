@@ -4,6 +4,7 @@ import { notify } from "@utils/helpers";
 
 
 
+
 const prefix = '/attendance';
 //fetching the members  
 const fetchAttendance = async ({ queryKey }) => {
@@ -98,3 +99,29 @@ export const useFetchTodaysAttendanceNotLogged = ({ filters = {}, page = 1, perP
         refetchOnReconnect: true
     });
 };
+
+
+export const downloadAttendance = async () => {
+    try {
+        const blob = await axios.get(`${prefix}/download-attendance`, {
+            responseType: "blob",
+            transformResponse: (r) => r, 
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `Attendance_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Download error:", error);
+    }
+};
+
+
+

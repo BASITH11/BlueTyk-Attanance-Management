@@ -9,18 +9,18 @@ trait AttendanceFormatter
 {
     public function groupAndFormatAttendance($attendances)
     {
-         $attendances = $attendances->filter(function ($attendance) {
-                $relation = $attendance->memberToDevice->first();
-                if (!$relation || !$relation->member) {
-                    // Log::warning('Invalid attendance relation', [
-                    //     'attendance_id' => $attendance->id,
-                    //     'device_serial_no' => $attendance->device_serial_no,
-                    //     'timestamp' => $attendance->timestamp,
-                    // ]);
-                    return false; // remove invalid attendance
-                }
-                return true; // keep valid attendance
-            });
+        $attendances = $attendances->filter(function ($attendance) {
+            $relation = $attendance->memberToDevice->first();
+            if (!$relation || !$relation->member) {
+                // Log::warning('Invalid attendance relation', [
+                //     'attendance_id' => $attendance->id,
+                //     'device_serial_no' => $attendance->device_serial_no,
+                //     'timestamp' => $attendance->timestamp,
+                // ]);
+                return false; // remove invalid attendance
+            }
+            return true; // keep valid attendance
+        });
 
 
         # Group by member + device + date
@@ -102,8 +102,9 @@ trait AttendanceFormatter
 
             return [
                 'id' => $logs->first()->id,
+                'member_id' => trim(optional($relation?->member)->id) ?? 0,
                 'member_name' => trim(optional($relation?->member)->name) ?: 'Unknown',
-                'department_name'=> optional($relation?->member?->department)->department_name,
+                'department_name' => optional($relation?->member?->department)->department_name,
                 'device_name' => optional($relation->device)->device_name,
                 'location_name' => optional($relation->device->deviceToLocation)->location_name,
                 'device_serial_no' => $logs->first()->device_serial_no,

@@ -88,7 +88,7 @@ class Members extends Model
 
         if ($exists) {
           #if same pin occur then sents an gett all command to the device 
-          CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
+          // CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
           return;
         }
       }

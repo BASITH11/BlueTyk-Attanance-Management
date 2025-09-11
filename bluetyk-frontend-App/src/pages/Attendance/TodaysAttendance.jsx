@@ -1,20 +1,22 @@
 import { React, useState } from "react";
-import { Paper, TextInput, Select, Group, Button, Flex, Skeleton, Box, Title, Text, ScrollArea, Timeline, ThemeIcon, Badge } from "@mantine/core";
+import { Paper, TextInput, Select, Group, Button, Flex, Skeleton, Box, Tooltip, ActionIcon, ScrollArea, Timeline, ThemeIcon, Badge } from "@mantine/core";
 import {
     IconMapPin,
     IconDeviceDesktop,
     IconSearch,
     IconCalendar,
+    IconDownload
 } from "@tabler/icons-react";
 import DataTable from "@components/layout/DataTable";
-import { useFetchTodaysAttendance } from "../../queries/attendance";
-import { useFetchDevicesAttributes, useFetchDevices } from "../../queries/device";
+import { useFetchTodaysAttendance ,downloadAttendance} from "../../queries/attendance";
+import { useFetchDevicesAttributes, useFetchDevices, } from "../../queries/device";
 import AttendanceTimeLine from "../../components/layout/AttendanceTimeLine";
 import AttendanceAction from "../../components/AttendanceAction";
 import { capitalize } from "../../utils/helpers";
 import { useAuthStore } from "../../config/authStore";
 import { useFetchDepartments } from "../../queries/department";
 import { DateInput } from "@mantine/dates";
+
 
 
 const ViewTodaysAttendance = () => {
@@ -25,7 +27,7 @@ const ViewTodaysAttendance = () => {
         name: "",
         location: "",
         device: "",
-        from_date:"",
+        from_date: "",
         to_date: "",
         department: "",
     });
@@ -71,6 +73,19 @@ const ViewTodaysAttendance = () => {
 
 
         <Paper p="md">
+            <Box mb={70} style={{ textAlign: "right" }}>
+                <Tooltip label="Download CSV">
+                    <ActionIcon
+                        variant="outline"
+                        color="blue"
+                        radius="xl"
+                        size="lg"
+                        onClick={downloadAttendance}
+                    >
+                        <IconDownload size={20} />
+                    </ActionIcon>
+                </Tooltip>
+            </Box>
 
             <ScrollArea type="auto" offsetScrollbars scrollbarSize={6} style={{ minHeight: 60, }}>
                 <Group

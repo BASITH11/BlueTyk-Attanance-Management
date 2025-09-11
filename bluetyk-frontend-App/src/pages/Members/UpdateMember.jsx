@@ -31,7 +31,9 @@ import { capitalize } from "../../utils/helpers";
 import { useAuthStore } from "../../config/authStore";
 
 const UpdateMembers = () => {
-   
+
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(100);
     const search = useSearch({ from: '/members/member-layout' });
     const memberId = search?.memberId || null;
     const { data, isLoading } = useFetchMemberById(memberId);
@@ -41,7 +43,10 @@ const UpdateMembers = () => {
     const device = memberTodevice?.device ?? {};
     const deleteDeviceMutation = useDeleteMemberFromDevice();
     const queryClient = useQueryClient()
-    const { data: departments = [], } = useFetchDepartments();
+    const { data: departmentResponse = {}, } = useFetchDepartments({ page, perPage });
+    const departments = departmentResponse.data || [];
+
+
     const authenticatedUser = useAuthStore.getState();
 
     const [selectedDevices, setSelectedDevices] = useState([]);
