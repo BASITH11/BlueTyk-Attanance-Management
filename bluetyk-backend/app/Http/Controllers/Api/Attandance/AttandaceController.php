@@ -196,6 +196,10 @@ class AttandaceController extends Controller
         'to_date'
       ]));
 
+      if ($filters->filter()->isNotEmpty()) {
+        $page = 1;
+      }
+
       // Decide whether to refresh temp table
       $shouldRefreshTempTable = $filters->filter()->isNotEmpty()  || $page == 1;
 
@@ -271,7 +275,7 @@ class AttandaceController extends Controller
       }
 
       // Always paginate from temp table
-      $data = TempFormattedAttendanceTable::orderByDesc('id')->paginate($perPage);
+      $data = TempFormattedAttendanceTable::orderByDesc('id')->paginate($perPage, ['*'], 'page', $page);
 
       return response()->json([
         'status' => true,

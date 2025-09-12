@@ -8,7 +8,7 @@ import {
     IconDownload
 } from "@tabler/icons-react";
 import DataTable from "@components/layout/DataTable";
-import { useFetchTodaysAttendance ,downloadAttendance} from "../../queries/attendance";
+import { useFetchTodaysAttendance, downloadAttendance } from "../../queries/attendance";
 import { useFetchDevicesAttributes, useFetchDevices, } from "../../queries/device";
 import AttendanceTimeLine from "../../components/layout/AttendanceTimeLine";
 import AttendanceAction from "../../components/AttendanceAction";
@@ -16,6 +16,8 @@ import { capitalize } from "../../utils/helpers";
 import { useAuthStore } from "../../config/authStore";
 import { useFetchDepartments } from "../../queries/department";
 import { DateInput } from "@mantine/dates";
+import { Mutation, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 
 
 
@@ -41,6 +43,7 @@ const ViewTodaysAttendance = () => {
     const locations = deviceAttributes?.locations || [];
     const { data: allDepartmentsResponse = {} } = useFetchDepartments({ page: 1, perPage: 100 });
     const allDepartments = allDepartmentsResponse?.data || [];
+    const queryClient = useQueryClient();
 
     const columns = [
         { accessor: "device_name", label: "Device" },
@@ -162,6 +165,8 @@ const ViewTodaysAttendance = () => {
                             from_date: "",
                             to_date: "",
                         });
+
+                        queryClient.invalidateQueries({ queryKey: ["todaysAttendance"] });
 
                     }}
                         style={{ minWidth: 100 }} >

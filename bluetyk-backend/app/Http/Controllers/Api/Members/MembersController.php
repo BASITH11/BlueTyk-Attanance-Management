@@ -165,7 +165,32 @@ class MembersController extends Controller
         try {
             $perPage = $request->get('per_page', 100);
 
-            $members = Members::with(['memberToDevice.device', 'department'])->paginate($perPage);
+            $query = Members::with(['memberToDevice.device', 'department']);
+
+            if ($request->filled('name')) {
+                $query->where('name', 'like', '%' . $request->name . '%');
+            }
+
+            if ($request->filled('department')) {
+                $query->where('department_id', $request->department);
+            }
+
+            if ($request->filled('card_no')) {
+                $query->where('card_no', $request->card_no);
+            }
+
+            if ($request->filled('phone_no')) {
+                $query->where('phone_no', 'like', '%' . $request->phone_no . '%');
+            }
+
+            if ($request->filled('device')) {
+                $query->whereHas('memberToDevice.device', function ($q) use ($request) {
+                    $q->where('id', $request->device);
+                });
+            }
+
+            $members = $query->paginate($perPage);
+
             return response()->json([
                 'status'  => true,
                 'message' => 'Members retrieved successfully',

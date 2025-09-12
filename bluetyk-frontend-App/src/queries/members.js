@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Mutation, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { notify } from "@utils/helpers";
+import { filterFns } from "@tanstack/react-table";
 
 //add a new member
 const prefix = '/members';
@@ -18,17 +19,18 @@ export const useAddMember = () => {
 
 
 //fetching the members  
-const fetchMembers = async ({ page = 1, perPage = 100 }) => {
+const fetchMembers = async ({ queryKey }) => {
+    const [_key, filters, page, perPage] = queryKey;
     const response = await axios.get(`${prefix}/get-members`,{
-         params: { page, per_page: perPage }
+         params: { ...filters, page, per_page: perPage }
     });
     return response.data;
 };
 
-export const useFetchMembers = ({ page = 1, perPage = 100 }) => {
+export const useFetchMembers = ({ filters={},page = 1, perPage = 100 }) => {
     return useQuery({
-        queryKey: ['members',page, perPage],
-        queryFn: () => fetchMembers({ page, perPage }),
+        queryKey: ['members', filters,page, perPage],
+        queryFn:fetchMembers,
         keepPreviousData: true,
         cacheTime: 0,                 // Do not cache
         staleTime: 0,                 // Always considered stale

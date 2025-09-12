@@ -89,7 +89,7 @@ class DeviceController extends Controller
     public function index(Request $request)
     {
         try {
-            $perPage = $request->get('per_page', 5);
+            $perPage = $request->get('per_page', 100);
             $devices = Device::with(['deviceToDeviceType', 'deviceToLocation'])->paginate($perPage);
             return response()->json([
                 'status' => true,
