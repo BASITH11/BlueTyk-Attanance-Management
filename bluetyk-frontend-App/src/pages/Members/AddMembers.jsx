@@ -4,6 +4,7 @@ import { IconUser, IconPhone, IconCreditCard, IconUserPlus, IconCalendar, IconMa
 import { useAddMember } from "../../queries/members";
 import { useFetchDevices } from "../../queries/device";
 import { useFetchDepartments } from "../../queries/department";
+import { useFetchShift } from "../../queries/shift";
 import ProfilePlaceholder from '../../assets/images/dummy-user.jpg';
 import { DateInput } from "@mantine/dates";
 import { notify } from "@utils/helpers";
@@ -53,10 +54,14 @@ const AddMembers = () => {
         setDeviceAssignments(updatedAssignments);
     };
 
-    const { data: deviceResponse = {}, isLoading, isError, error } = useFetchDevices({ page, perPage });
+    const { data: deviceResponse = {}, isLoading, isError, error } = useFetchDevices({ page: 1, perPage: 100 });
     const devices = deviceResponse.data || [];
-    const { data: departmentResponse = {} } = useFetchDepartments({ page, perPage });
-     const departments = departmentResponse.data || [];
+    const { data: departmentResponse = {} } = useFetchDepartments({ page: 1, perPage: 100 });
+    const departments = departmentResponse.data || [];
+    const { data: shiftResponse = {} } = useFetchShift({ page: 1, perPage: 100 })
+    const shifts = shiftResponse.data || [];
+
+
 
 
     const deviceOptions = devices.map(device => ({
@@ -67,6 +72,11 @@ const AddMembers = () => {
     const departmentOptions = departments.map(department => ({
         value: String(department.id),
         label: String(department.department_name || 'No department'),
+    }));
+
+    const ShiftOptions = shifts.map(shift => ({
+        value: String(shift.id),
+        label: String(shift.shift_name || 'No shift'),
     }));
 
 
@@ -82,6 +92,7 @@ const AddMembers = () => {
             image: '',
             deviceId: [],
             departmentId: '',
+            shiftId: '',
         },
         validate: {
             name: (value) => (value.length < 1 ? 'Name is required' : null),
@@ -117,6 +128,8 @@ const AddMembers = () => {
         formData.append("date_of_birth", values.dateOfBirth || "");
         formData.append("image", values.image || "");
         formData.append("department_id", values.departmentId || "");
+        formData.append("shift_id", values.shiftId || "");
+
 
         // Device assignments
         values.deviceId.forEach((id, index) => {
@@ -260,8 +273,15 @@ const AddMembers = () => {
                                 leftSection={<IconBuilding size={18} />}
                                 {...form.getInputProps("departmentId")}
                             />
-
-
+                            <Select
+                                label="Select Shift"
+                                withAsterisk
+                                placeholder="Choose a shift"
+                                data={ShiftOptions}
+                                leftSectionPointerEvents="none"
+                                leftSection={<IconBuilding size={18} />}
+                                {...form.getInputProps("shiftId")}
+                            />
 
                             <MultiSelect
                                 label="Select Device"
