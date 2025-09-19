@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('date_of_birth')->nullable();
             $table->string('designation')->nullable();
             $table->foreignId('department_id')->constrained('departments')->onDelete('cascade');
+            $table->foreignId('shift_id')->constrained('shifts')->onDelete('cascade');
             $table->enum('status', ['pending', 'success', 'deleted'])->default('pending');
             $table->string('source')->default('app');
             $table->timestamps();

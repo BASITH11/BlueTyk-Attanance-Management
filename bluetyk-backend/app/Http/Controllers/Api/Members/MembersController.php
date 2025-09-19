@@ -63,6 +63,7 @@ class MembersController extends Controller
                 'date_of_birth' => 'nullable|date|before:today',
                 'designation'   => 'nullable|string|max:255',
                 'department_id' => 'required|integer|exists:departments,id',
+                'shift_id'      => 'required|integer|exists:shifts,id',
 
                 // New device assignments validation
                 'device_assignments'                       => 'nullable|array',
@@ -111,6 +112,7 @@ class MembersController extends Controller
                 'date_of_birth' => $request->date_of_birth,
                 'designation'   => $request->designation,
                 'department_id' => $request->department_id,
+                'shift_id'      => $request->shift_id,
                 'status'        => 'pending',
                 'source'        => 'app',
             ]);
@@ -165,7 +167,7 @@ class MembersController extends Controller
         try {
             $perPage = $request->get('per_page', 100);
 
-            $query = Members::with(['memberToDevice.device', 'department']);
+            $query = Members::with(['memberToDevice.device', 'department', 'shift']);
 
             if ($request->filled('name')) {
                 $query->where('name', 'like', '%' . $request->name . '%');
@@ -367,7 +369,7 @@ class MembersController extends Controller
                     'errors'  => 'Validation error',
                 ], 422);
             }
-            $member = Members::With(['memberToDevice.device', 'department'])->findOrFail($request->id);
+            $member = Members::With(['memberToDevice.device', 'department', 'shift'])->findOrFail($request->id);
             return response()->json([
                 'status'  => true,
                 'message' => 'Member retrieved successfully',
@@ -450,7 +452,8 @@ class MembersController extends Controller
                 'address'       => 'nullable|string|max:500',
                 'date_of_birth' => 'nullable|date|before:today',
                 'designation'   => 'nullable|string|max:255',
-                'department_id' => 'required|string|exists:departments,id',
+                'department_id' => 'required|integer|exists:departments,id',
+                'shift_id'      => 'required|integer|exists:shifts,id',
             ]);
 
             if ($validator->fails()) {
@@ -482,6 +485,7 @@ class MembersController extends Controller
             $member->date_of_birth = $request->date_of_birth;
             $member->designation = $request->designation;
             $member->department_id = $request->department_id;
+            $member->shift_id = $request->department_id;
             $member->save();
 
             // Loop through all devices linked to this member

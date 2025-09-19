@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('temp_formatted_attendance_table', function (Blueprint $table) {
             $table->id();
             $table->integer('member_id');
+            $table->string('shift')->nullable();
             $table->string('member_name');
             $table->string('department_name')->nullable();
             $table->string('device_name')->nullable();
@@ -25,6 +26,10 @@ return new class extends Migration
             $table->string('worked_duration')->nullable();
             $table->string('total_break_duration')->nullable();
             $table->json('breaks')->nullable();
+            $table->string('login_status')->nullable();
+            $table->string('logout_status')->nullable();
+            $table->string('overtime')->nullable();
+            $table->string('attendance_status')->nullable();
             $table->timestamps();
         });
     }

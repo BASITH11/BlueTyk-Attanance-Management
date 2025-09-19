@@ -1,29 +1,30 @@
 <?php
 
-namespace App\Http\Controllers\Api\Location;
+namespace App\Http\Controllers\Api\Shift;
 
 use App\Http\Controllers\Controller;
-use App\Models\Locations;
-use Exception;
+use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Exception;
 
-class LocationController extends Controller
+class ShiftController extends Controller
 {
+
 
     public static function routes()
     {
         Route::controller(self::class)
-            ->prefix('location')
+            ->prefix('shift')
             ->middleware(['auth:sanctum', 'check.user', 'check.subscription'])
             ->group(function () {
-                Route::post('/add-location', 'store')->name('location.store');
-                Route::get('/get-location', 'index')->name('location.index');
-                Route::delete('/delete-location', 'destroy')->name('location.destroy');
-                Route::put('/update-location', 'update')->name('location.update');
-                Route::get('/get-locationById', 'show')->name('location.getById');
+                Route::post('/add-shift', 'store')->name('shift.store');
+                Route::get('/get-shift', 'index')->name('shift.index');
+                Route::delete('/delete-shift', 'destroy')->name('shift.destroy');
+                Route::put('/update-shift', 'update')->name('shift.update');
+                Route::get('/get-shiftById', 'show')->name('shift.getById');
             });
     }
 
@@ -38,7 +39,10 @@ class LocationController extends Controller
         try {
 
             $validator = Validator::make($request->all(), [
-                'location_name' => 'required|string|max:255',
+                'shift_name' => 'required|string|max:255',
+                'shift_start' => 'required|date_format:H:i',
+                'shift_end' => 'required|date_formate:H:i',
+                'is_overnight' => 'nullable|boolean',
             ]);
 
             if ($validator->fails()) {
@@ -49,15 +53,18 @@ class LocationController extends Controller
                 ], 422);
             }
 
-            Locations::create([
-                'location_name' => $request->location_name,
+            Shift::create([
+                'shift_name' => $request->shift_name,
+                'shift_start' => $request->shift_start,
+                'shift_end' => $request->shift_end,
+                'is_overnight' => $request->is_overnight ?? false,
             ]);
 
             DB::commit();
 
             return response()->json([
                 'status' => true,
-                'message' => 'location Created successfully',
+                'message' => 'shift Created successfully',
             ], 200);
         } catch (Exception $e) {
             DB::rollBack();
@@ -67,7 +74,6 @@ class LocationController extends Controller
             ], 500);
         }
     }
-
 
 
 
@@ -80,13 +86,13 @@ class LocationController extends Controller
     {
         try {
 
-            $perPage = $request->get('per_page',100);
-            $locations = Locations::paginate($perPage);
+            $perPage = $request->get('per_page', 100);
+            $shifts = Shift::paginate($perPage);
 
             return response()->json([
                 'status' => true,
-                'data' => $locations,
-                'message' => 'location retieved successfully',
+                'data' => $shifts,
+                'message' => 'shifts retieved successfully',
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -98,17 +104,21 @@ class LocationController extends Controller
 
 
 
+
     /**
      * function to update the location 
      */
     public function update(Request $request)
     {
-          DB::beginTransaction();
+        DB::beginTransaction();
         try {
 
             $validator = Validator::make($request->all(), [
-                'id' => 'required|exists:locations,id',
-                'location_name' => 'required|string|max:255|unique:locations,location_name,' . $request->id,
+                'id' => 'required|exists:shifts,id',
+                'shift_name' => 'required|string|max:255|unique:shifts,shift_name,' . $request->id,
+                'shift_start' => 'required|date_format:H:i',
+                'shift_end' => 'required|date_formate:H:i',
+                'is_overnight' => 'nullable|boolean',
             ]);
 
             if ($validator->fails()) {
@@ -119,15 +129,20 @@ class LocationController extends Controller
                 ], 422);
             }
 
-          
-            $location = Locations::findOrFail($request->id);
 
-            $location->location_name = $request->location_name;
-            $location->save();
+            $shift = Shift::findOrFail($request->id);
+
+            $shift->shift_name = $request->shift_name;
+            $shift->shift_start = $request->shift_start;
+            $shift->shift_end = $request->shift_end;
+            $shift->is_overnight = $request->is_overnight ?? false;
+
+
+            $shift->save();
             DB::commit();
             return response()->json([
                 'status' => true,
-                'message' => 'location updated successfully',
+                'message' => 'shift updated successfully',
             ], 200);
         } catch (Exception $e) {
             DB::rollBack();
@@ -137,6 +152,7 @@ class LocationController extends Controller
             ], 500);
         }
     }
+
 
 
     /**
@@ -152,14 +168,14 @@ class LocationController extends Controller
             if (!$id) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Location ID is required',
+                    'message' => 'Shift ID is required',
                 ], 400);
             }
-            $location = Locations::findOrFail($id);
-            $location->delete();
+            $shift = Shift::findOrFail($id);
+            $shift->delete();
             return response()->json([
                 'status' => true,
-                'message' => 'location deleted successfully',
+                'message' => 'shift deleted successfully',
             ], 200);
         } catch (Exception $e) {
             DB::rollBack();
@@ -169,6 +185,7 @@ class LocationController extends Controller
             ], 500);
         }
     }
+
 
 
 
@@ -183,15 +200,15 @@ class LocationController extends Controller
             if (!$id) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Location ID is required',
+                    'message' => 'shift ID is required',
                 ], 400);
             }
-            $location = Locations::findOrFail($id);
+            $shift = Shift::findOrFail($id);
 
             return response()->json([
                 'status' => true,
-                'data' => $location,
-                'message' => 'location fetched successfully',
+                'data' => $shift,
+                'message' => 'shift fetched successfully',
             ], 200);
         } catch (Exception $e) {
             return response()->json([

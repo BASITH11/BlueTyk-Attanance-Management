@@ -38,6 +38,36 @@ class SettingsSeeder extends Seeder
                 'description' => 'end_date',
                 'value'       => now()->addMonth()->toDateString(),
             ],
+            [
+                'description' => 'entity_name',
+                'value'       => null,
+            ],
+              [
+                'description' => 'skip_short_punches',
+                'value'       => 'true',
+            ],
+             [
+                'description' => 'skiping_time',
+                'value'       => '60',
+            ],
+             [
+                'description' => 'enable_sms',
+                'value'       => 'true',
+            ],
+             [
+                'description' => 'sms_provider',
+                'value'       => null,
+            ],
+             [
+                'description' => 'sms_api_key',
+                'value'       => null,
+            ],
+             [
+                'description' => 'sms_header',
+                'value'       => null,
+            ],
+        
+
         ];
 
         Settings::insert($settings);

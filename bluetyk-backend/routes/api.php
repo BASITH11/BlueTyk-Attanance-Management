@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\Attandance\AttandaceController;
 use App\Http\Controllers\Api\Dashboard\DashboardController;
 use App\Http\Controllers\Api\Location\LocationController;
 use App\Http\Controllers\Api\Department\DepartmentController;
+use App\Http\Controllers\Api\Shift\ShiftController;
+use App\Http\Controllers\Api\Sms\SmsController;
 use App\Http\Controllers\BiometricDeviceController;
 
 
@@ -28,3 +30,5 @@ AttandaceController::Routes();
 DashboardController::Routes();
 LocationController::Routes();
 DepartmentController::Routes();
+ShiftController::Routes();
+SmsController::Routes();

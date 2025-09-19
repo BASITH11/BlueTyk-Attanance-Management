@@ -2,6 +2,21 @@
 
 return [
 
+
+    /*
+|--------------------------------------------------------------------------
+| SMS Setting
+|--------------------------------------------------------------------------
+|
+| This value determines if the SMS feature is enabled globally. You can
+| set this via the environment variable APP_SMS_ENABLED or override
+| it at runtime from the database if needed.
+|
+*/
+
+    'sms_enabled' => env('APP_SMS_ENABLED', false),
+
+
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -122,5 +137,8 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    // Global SMS enable flag
+    'sms_enabled' => env('APP_SMS_ENABLED', false),
 
 ];

@@ -17,6 +17,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Exports\AllClassesAttendanceExport;
 use App\Exports\AttendanceByDate;
+use App\Models\SmsLog;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AttandaceController extends Controller
@@ -127,6 +128,7 @@ class AttandaceController extends Controller
 
       $query = Attendances::with([
         'memberToDevice.member.department',
+        'memberToDevice.member.shift',
         'memberToDevice.device.deviceToLocation'
       ])
         ->whereHas('memberToDevice.member', function ($q) use ($request) {
@@ -150,12 +152,18 @@ class AttandaceController extends Controller
             'device_serial_no'     => $item['device_serial_no'],
             'date'                 => Carbon::parse($item['date'])->format('Y-m-d'),
             'in_time'              => Carbon::parse($item['in_time'])->format('H:i:s'),
-            'out_time'             => $item['out_time'] && $item['out_time'] !== 'Still Working'
+            'out_time' => $item['out_time']
+              && !in_array($item['out_time'], ['Still Working', 'Not Outed'])
               ? Carbon::parse($item['out_time'])->format('H:i:s')
               : null,
             'worked_duration'      => $item['worked_duration'],
             'total_break_duration' => $item['total_break_duration'],
             'breaks'               => json_encode($item['breaks']),
+            'shift'                => $item['shift'],
+            'login_status'         => $item['login_status'],
+            'logout_status'        => $item['logout_status'],
+            'overtime'             => $item['overtime'],
+            'attendance_status'    => $item['attendance_status'],
           ];
         }
         TempFormattedAttendanceTable::insert($insertData);
@@ -207,6 +215,7 @@ class AttandaceController extends Controller
         // Fetch raw Attendances
         $query = Attendances::with([
           'memberToDevice.member.department',
+          'memberToDevice.member.shift',
           'memberToDevice.device.deviceToLocation'
         ]);
 
@@ -246,9 +255,11 @@ class AttandaceController extends Controller
         }
 
         $attendances = $query->orderByDesc('timestamp')->get();
+
+
         $data = $this->groupAndFormatAttendance($attendances);
 
-        // Refresh Temp Table
+        // // Refresh Temp Table
         TempFormattedAttendanceTable::truncate();
         collect($data)->chunk(10)->each(function ($chunk) {
           $insertData = [];
@@ -262,19 +273,26 @@ class AttandaceController extends Controller
               'device_serial_no'     => $item['device_serial_no'],
               'date'                 => Carbon::parse($item['date'])->format('Y-m-d'),
               'in_time'              => Carbon::parse($item['in_time'])->format('H:i:s'),
-              'out_time'             => $item['out_time'] && $item['out_time'] !== 'Still Working'
+              'out_time' => $item['out_time']
+                && !in_array($item['out_time'], ['Still Working', 'Not Outed'])
                 ? Carbon::parse($item['out_time'])->format('H:i:s')
                 : null,
               'worked_duration'      => $item['worked_duration'],
               'total_break_duration' => $item['total_break_duration'],
               'breaks'               => json_encode($item['breaks']),
+              'shift'                => $item['shift'],
+              'login_status'         => $item['login_status'],
+              'logout_status'        => $item['logout_status'],
+              'overtime'             => $item['overtime'],
+              'attendance_status'    => $item['attendance_status'],
+
             ];
           }
           TempFormattedAttendanceTable::insert($insertData);
         });
       }
 
-      // Always paginate from temp table
+      #Always paginate from temp table
       $data = TempFormattedAttendanceTable::orderByDesc('id')->paginate($perPage, ['*'], 'page', $page);
 
       return response()->json([
@@ -302,23 +320,23 @@ class AttandaceController extends Controller
       $perPage = $request->get('per_page', 100);
       $date = $request->filled('date') ? Carbon::parse($request->date) : Carbon::today();
 
-      // Get attendances of that date
-      $attendancesOnDate = Attendances::with('memberToDevice.member')
+      # Get attendances of that date
+      $attendancesOnDate = Attendances::with('memberToDevice.member.shift')
         ->whereDate('timestamp', $date)
         ->get();
 
-      // Extract logged member IDs
+      # Extract logged member IDs
       $loggedMemberIds = $attendancesOnDate
         ->pluck('memberToDevice.*.member.id')
         ->flatten()
         ->unique()
         ->filter();
 
-      // Query members who are NOT in the logged list
+      # Query members who are NOT in the logged list
       $query = Members::whereNotIn('id', $loggedMemberIds)
         ->with(['memberToDevice.device.deviceToLocation', 'department']);
 
-      // Filters
+      # Filters
       if ($request->filled('name')) {
         $query->where('name', 'like', '%' . $request->name . '%');
       }
@@ -341,25 +359,54 @@ class AttandaceController extends Controller
         });
       }
 
-      // Paginate
+      # Paginate
       $membersNotLogged = $query->paginate($perPage);
 
-      // Transform collection inside pagination
-      $membersNotLogged->getCollection()->transform(function ($member) {
+      $smsSentMemberIds = SmsLog::whereDate('timestamp', $date)
+        ->where('status','success')
+        ->pluck('member_id')
+        ->unique();
+
+
+      $isToday = $date->isToday();
+      # Transform collection inside pagination
+      $membersNotLogged->getCollection()->transform(function ($member) use ($smsSentMemberIds, $isToday) {
         $formatted = [];
+
         foreach ($member->memberToDevice as $memberDevice) {
+          $device = $memberDevice->device;
+
           $name = trim($member->name);
+
+          # Check if device is online (last_seen within 3 minutes)
+          $deviceOnline = $device && $device->last_seen_at
+            && Carbon::parse($device->last_seen_at)->gte(Carbon::now()->subMinutes(3));
+
+          # Compose remark
+          if (!$deviceOnline) {
+            $remark = ['Device offline'];
+          } else {
+            $remark = ['Student not logged'];
+          }
+
           $formatted[] = [
-            'name'           => $name !== '' ? $name : 'Unknown',
-            'device_name'    => $memberDevice->device->device_name ?? null,
-            'location_name'  => $memberDevice->device->deviceToLocation->location_name ?? null,
+            'member_id'       => $member->id ?? null,
+            'phone_no'        => $member->phone_no ?? null,
+            'name'            => $name !== '' ? $name : 'Unknown',
+            'device_name'     => $device->device_name ?? null,
+            'location_name'   => $device->deviceToLocation->location_name ?? null,
             'department_name' => $member->department->department_name ?? null,
+            'remark'          => $remark, // combine remarks
+            'device_status'   => $deviceOnline ? 'Online' : 'Offline',
+            'sms_sent'        => $smsSentMemberIds->contains($member->id),
+            'can_send_sms'    => config('app.sms_enabled') && $isToday && $deviceOnline && !$smsSentMemberIds->contains($member->id),
           ];
         }
+
         return $formatted;
       });
 
-      // Flatten because each member may expand to multiple devices
+      # Flatten because each member may expand to multiple devices
       $membersNotLogged->setCollection(
         $membersNotLogged->getCollection()->flatten(1)
       );
@@ -377,6 +424,7 @@ class AttandaceController extends Controller
       ], 500);
     }
   }
+
 
 
   /**

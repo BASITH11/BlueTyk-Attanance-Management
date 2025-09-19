@@ -19,7 +19,12 @@ class TempFormattedAttendanceTable extends Model
         'out_time',
         'worked_duration',
         'total_break_duration',
-        'breaks'
+        'breaks',
+        'shift',
+        'login_status',
+        'logout_status',
+        'overtime',
+        'attendance_status',
     ];
 
     protected $casts = [

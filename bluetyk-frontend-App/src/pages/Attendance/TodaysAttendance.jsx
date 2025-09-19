@@ -5,7 +5,8 @@ import {
     IconDeviceDesktop,
     IconSearch,
     IconCalendar,
-    IconDownload
+    IconDownload,
+    IconMessage
 } from "@tabler/icons-react";
 import DataTable from "@components/layout/DataTable";
 import { useFetchTodaysAttendance, downloadAttendance } from "../../queries/attendance";
@@ -16,7 +17,10 @@ import { capitalize } from "../../utils/helpers";
 import { useAuthStore } from "../../config/authStore";
 import { useFetchDepartments } from "../../queries/department";
 import { DateInput } from "@mantine/dates";
-import { Mutation, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSendSmsLogged } from "../../queries/sms";
+import { notify } from "@utils/helpers";
+
+
 
 
 
@@ -34,7 +38,7 @@ const ViewTodaysAttendance = () => {
         department: "",
     });
     const authenticatedUser = useAuthStore.getState();
-    const { data, isFetching } = useFetchTodaysAttendance({ filters, page, perPage, });
+    const { data, isFetching, refetch } = useFetchTodaysAttendance({ filters, page, perPage, });
     const attendances = data?.data ?? [];
     const totalRecords = data?.total || 0;
     const { data: deviceAttributes } = useFetchDevicesAttributes();
@@ -43,7 +47,20 @@ const ViewTodaysAttendance = () => {
     const locations = deviceAttributes?.locations || [];
     const { data: allDepartmentsResponse = {} } = useFetchDepartments({ page: 1, perPage: 100 });
     const allDepartments = allDepartmentsResponse?.data || [];
-    const queryClient = useQueryClient();
+
+    const sendSmsMutation = useSendSmsLogged();
+
+    const handleSendSMS = () => {
+        sendSmsMutation.mutate(undefined, {
+            onSuccess: (response) => {
+                notify({
+                    title: "Success",
+                    message: response.message,
+                    iconType: "success",
+                });
+            },
+        });
+    };
 
     const columns = [
         { accessor: "device_name", label: "Device" },
@@ -77,18 +94,33 @@ const ViewTodaysAttendance = () => {
 
         <Paper p="md">
             <Box mb={70} style={{ textAlign: "right" }}>
-                <Tooltip label="Download CSV">
-                    <ActionIcon
-                        variant="outline"
-                        color="blue"
-                        radius="xl"
-                        size="lg"
-                        onClick={downloadAttendance}
-                    >
-                        <IconDownload size={20} />
-                    </ActionIcon>
-                </Tooltip>
+                <Group spacing="md" justify="end">
+                    <Tooltip label="Download CSV">
+                        <ActionIcon
+                            variant="outline"
+                            color="blue"
+                            radius="xl"
+                            size="lg"
+                            onClick={downloadAttendance}
+                        >
+                            <IconDownload size={20} />
+                        </ActionIcon>
+                    </Tooltip>
+
+                    <Tooltip label="Send SMS">
+                        <ActionIcon
+                            variant="outline"
+                            color="blue"
+                            radius="xl"
+                            size="lg"
+                            onClick={handleSendSMS}
+                        >
+                            <IconMessage size={20} />
+                        </ActionIcon>
+                    </Tooltip>
+                </Group>
             </Box>
+
 
             <ScrollArea type="auto" offsetScrollbars scrollbarSize={6} style={{ minHeight: 60, }}>
                 <Group
@@ -165,8 +197,7 @@ const ViewTodaysAttendance = () => {
                             from_date: "",
                             to_date: "",
                         });
-
-                        queryClient.invalidateQueries({ queryKey: ["todaysAttendance"] });
+                        refetch();
 
                     }}
                         style={{ minWidth: 100 }} >

@@ -28,6 +28,7 @@ class Members extends Model
     'status',
     'source',
     'department_id',
+    'shift_id',
   ];
 
 
@@ -46,6 +47,11 @@ class Members extends Model
   public function department()
   {
     return $this->belongsTo(Department::class, 'department_id', 'id');
+  }
+
+  public function shift()
+  {
+    return $this->belongsTo(Shift::class, 'shift_id', 'id');
   }
 
   /**
