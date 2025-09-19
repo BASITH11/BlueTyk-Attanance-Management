@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\Department;
 use App\Models\Device;
+use App\Models\Shift;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -22,6 +23,7 @@ class ExcelDataImport implements ToCollection, WithHeadingRow
         'date_of_birth' => 'date_of_birth',
         'designation'   => 'designation',
         'department'    => 'department_id',
+        'shift'         => 'shift_id',
         // device handled separately
     ];
 
@@ -32,6 +34,7 @@ class ExcelDataImport implements ToCollection, WithHeadingRow
      */
     public function collection(Collection $rows)
     {
+
         
         foreach ($rows as $index => $row) {
             $arranged = [];
@@ -60,6 +63,14 @@ class ExcelDataImport implements ToCollection, WithHeadingRow
 
             $arranged['department_id'] = Department::getDepartmentByName($row['department']);
 
+
+            if (empty($row['shift'])) {
+                $lineNumber = $index + 2; // Excel row number
+                throw new \Exception("Shift is required at Excel row {$lineNumber}");
+            }
+
+            $arranged['shift_id'] = Shift::getShiftByName($row['shift']);
+
             #Device assignments
             if (!empty($row['device'])) {
                 $arranged['device_assignments'] = [
@@ -76,12 +87,12 @@ class ExcelDataImport implements ToCollection, WithHeadingRow
 
             $this->data[] = $arranged;
 
-             // For debugging purposes
+            // For debugging purposes
         }
     }
 
     public function headingRow(): int
     {
-        return 1; 
+        return 1;
     }
 }

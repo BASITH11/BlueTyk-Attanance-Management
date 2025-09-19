@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('phone_no');
             $table->string('batch_id')->nullable();
             $table->string('message_id')->nullable();
-            $table->string('sms_log');
+            $table->text('sms_log');
             $table->timestamp('timestamp');
             $table->string('status')->nullable();
             $table->timestamps();

@@ -46,6 +46,7 @@ class ImportMemberJob implements ShouldQueue
                 'date_of_birth' => $this->row['date_of_birth'],
                 'designation'   => $this->row['designation'],
                 'department_id' => $this->row['department_id'],
+                'shift_id'      => $this->row['shift_id'],
                 'status'        => 'pending',
                 'source'        => 'app',
             ]);
@@ -67,7 +68,7 @@ class ImportMemberJob implements ShouldQueue
                             'status'           => 'pending',
                         ]);
 
-                          CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
+                        CommandQueues::sendGetAllUsersCommand($device->device_serial_no);
                     }
                 }
             }

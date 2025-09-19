@@ -9,6 +9,7 @@ import { useFetchDepartments } from "../../queries/department";
 import { DateInput } from "@mantine/dates";
 import { notify } from "@utils/helpers";
 import { useParams } from '@tanstack/react-router';
+import { useFetchShift } from "../../queries/shift";
 import {
     Stack,
     TextInput,
@@ -45,6 +46,8 @@ const UpdateMembers = () => {
     const queryClient = useQueryClient()
     const { data: departmentResponse = {}, } = useFetchDepartments({ page, perPage });
     const departments = departmentResponse.data || [];
+    const { data: shiftResponse = {} } = useFetchShift({ page: 1, perPage: 100 })
+    const shifts = shiftResponse.data || [];
 
 
     const authenticatedUser = useAuthStore.getState();
@@ -96,6 +99,12 @@ const UpdateMembers = () => {
         label: String(department.department_name || 'No department'),
     }));
 
+
+    const shiftOptions = shifts.map(shift => ({
+        value: String(shift.id),
+        label: String(shift.shift_name || 'No shift'),
+    }));
+
     {/*get the unlinked devices*/ }
 
     const deviceOptions = Array.isArray(unlinkedDevices)
@@ -131,6 +140,7 @@ const UpdateMembers = () => {
             image: '',
             deviceId: '',
             departmentId: '',
+            shiftId: '',
         },
         validate: {
             name: (value) => (value.length < 1 ? 'Name is required' : null),
@@ -166,7 +176,7 @@ const UpdateMembers = () => {
                 address: member.address || "",
                 image: member.image || "",
                 departmentId: member.department_id ? String(member.department_id) : "",
-
+                shiftId: member.shift_id ? String(member.shift_id) : "",
 
             });
 
@@ -197,6 +207,7 @@ const UpdateMembers = () => {
         formData.append("date_of_birth", values.dateOfBirth || "");
         formData.append("image", values.image || "");
         formData.append("department_id", values.departmentId || "");
+        formData.append("shift_id", values.shiftId || "");
 
 
 
@@ -384,6 +395,17 @@ const UpdateMembers = () => {
                                         data={departmentOptions}
                                         value={form.values.departmentId || ''}
                                         onChange={(val) => form.setFieldValue("departmentId", val)}
+                                        leftSectionPointerEvents="none"
+                                        leftSection={<IconBuilding size={18} />}
+                                    />
+
+                                    <Select
+                                        label="Select Shift"
+                                        withAsterisk
+                                        placeholder="Choose a Shift"
+                                        data={shiftOptions}
+                                        value={form.values.shiftId || ''}
+                                        onChange={(val) => form.setFieldValue("shiftId", val)}
                                         leftSectionPointerEvents="none"
                                         leftSection={<IconBuilding size={18} />}
                                     />

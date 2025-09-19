@@ -126,7 +126,7 @@ class SmsController extends Controller
 
             #sms sent already on the day
             $alreadySent = SmsLog::whereDate('timestamp', carbon::today())
-                ->where('status', 'success')    
+                ->where('status', 'success')
                 ->pluck('member_id')
                 ->toArray();
 
@@ -146,14 +146,25 @@ class SmsController extends Controller
             $data = $this->groupAndFormatAttendance($attendances);
             $templateKey = 'Present Today';
 
+
             collect($data)->chunk(200)->each(function ($chunk) use ($templateKey) {
                 foreach ($chunk as $item) {
+
+                    $attendanceDateTime = null;
+                    if (!empty($item['in_time'])) {
+                        # Build datetime with Carbon
+                        $attendanceDateTime = Carbon::today()
+                            ->setTimeFromTimeString($item['in_time'])
+                            ->format('d/m/y h:i A');
+                        // Example: 19/09/25 08:45 AM
+                    }
+                    
                     SendSmsJob::dispatch(
                         $item['member_id'],
                         $item['member_name'],
                         $item['phone_no'] ?? null,
                         $item['department_name'] ?? null,
-                        now(),
+                        $attendanceDateTime,
                         $templateKey
                     );
                 }

@@ -485,7 +485,7 @@ class MembersController extends Controller
             $member->date_of_birth = $request->date_of_birth;
             $member->designation = $request->designation;
             $member->department_id = $request->department_id;
-            $member->shift_id = $request->department_id;
+            $member->shift_id = $request->shift_id;
             $member->save();
 
             // Loop through all devices linked to this member

@@ -2,7 +2,7 @@ import React from "react";
 import {
     IconUser,
     IconPhone,
-    IconCreditCard, IconCalendar, IconMapPin, IconBriefcase, IconCheck , IconPower, IconDeviceDesktop, IconTimeDuration10,
+    IconCreditCard, IconCalendar, IconMapPin, IconBriefcase, IconCheck, IconPower, IconDeviceDesktop, IconTimeDuration10,
 } from "@tabler/icons-react";
 import {
     Stack,
@@ -136,9 +136,26 @@ function MemberDetails() {
 
                             <Group align="center" gap="xs" style={fieldStyle}>
                                 <IconBriefcase size={18} />
+                                <Text fw={700}> Department:</Text>
+                                <Text fw={500} c={member.department.department_name?.trim() ? 'black' : 'red'}>
+                                    {member.department.department_name?.trim() || "Not available"}
+                                </Text>
+                            </Group>
+
+
+                            <Group align="center" gap="xs" style={fieldStyle}>
+                                <IconBriefcase size={18} />
                                 <Text fw={700}> Designation:</Text>
                                 <Text fw={500} c={member.designation?.trim() ? 'black' : 'red'}>
                                     {member.designation?.trim() || "Not available"}
+                                </Text>
+                            </Group>
+
+                            <Group align="center" gap="xs" style={fieldStyle}>
+                                <IconBriefcase size={18} />
+                                <Text fw={700}> Shift:</Text>
+                                <Text fw={500} c={member.shift.shift_name?.trim() ? 'black' : 'red'}>
+                                    {member.shift.shift_name?.trim() || "Not available"}
                                 </Text>
                             </Group>
 

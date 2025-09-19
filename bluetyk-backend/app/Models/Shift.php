@@ -24,8 +24,25 @@ class Shift extends Model
         'is_overnight' => 'boolean',
     ];
 
+    /**
+     * relation towards the members table
+     */
     public function members()
     {
         return $this->hasMany(Members::class, 'id', 'shift_id');
+    }
+
+    /**
+     * get shift by name 
+     */
+    public static function getShiftByName($shiftName)
+    {
+
+        $shift = self::where('shift_name', $shiftName)->first();
+
+        if (!$shift) {
+            throw new \Exception("Shift '{$shiftName}' not found in database");
+        }
+        return $shift->id;
     }
 }

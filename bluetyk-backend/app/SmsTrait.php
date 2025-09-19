@@ -75,19 +75,11 @@ trait SmsTrait
                 [
                     $this->sanitizeSmsText($name),
                     $this->sanitizeSmsText($department),
-                    $date->format('d-m-Y')
+                    $date,
                 ],
                 $template
             );
 
-            // Log prepared message
-            Log::info("Preparing to send SMS", [
-                'member_id' => $member_id,
-                'mobile'    => $mobile,
-                'message'   => $message,
-                'template'  => $templateKey,
-                'header'    => $this->header,
-            ]);
 
             // Call SMS API
             $response = Http::asForm()->post('https://api.textlocal.in/send/', [
@@ -107,7 +99,7 @@ trait SmsTrait
                 'department'    => $department ?? '',
                 'sms_log'       => $message,
                 'template_name' => $templateKey,
-                'timestamp'     => $date,
+                'timestamp'     => now(),
                 'phone_no'      => $mobile,
                 'batch_id'      => $responseData['batch_id'] ?? null,
                 'message_id'    => $responseData['messages'][0]['id'] ?? null,
@@ -131,7 +123,7 @@ trait SmsTrait
                 'department'    => $department ?? '',
                 'sms_log'       => "Failed: " . $e->getMessage(),
                 'template_name' => $templateKey,
-                'timestamp'     => $date,
+                'timestamp'     => now(),
                 'phone_no'      => $mobile,
                 'batch_id'      => 0,
                 'message_id'    => 0,
