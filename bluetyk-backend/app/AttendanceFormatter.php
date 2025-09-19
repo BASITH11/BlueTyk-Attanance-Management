@@ -117,6 +117,11 @@ trait AttendanceFormatter
                 }
             }
 
+            // --- NEW: If in_time is null, set it 3 minutes before out_time ---
+            if (!$inTime && $outTime) {
+                $inTime = $outTime->copy()->subMinutes(3);
+            }
+
             $workedSeconds = 0;
             $totalBreakSeconds = 0;
             $breaks = [];
@@ -222,7 +227,7 @@ trait AttendanceFormatter
                 'member_id' => $member->id ?? 0,
                 'shift' => $shift?->shift_name,
                 'member_name' => $member->name ?? 'Unknown',
-                'phone_no' => $member->phone_no ?? null, 
+                'phone_no' => $member->phone_no ?? null,
                 'department_name' => optional($member->department)->department_name,
                 'device_name' => optional($relation->device)->device_name,
                 'location_name' => optional($relation->device->deviceToLocation)->location_name,
