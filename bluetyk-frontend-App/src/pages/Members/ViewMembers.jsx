@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Paper, TextInput, Group, Select, ScrollArea, Skeleton, Flex, Badge, Tooltip, Avatar, Button } from "@mantine/core";
-import { IconSearch, IconEye, IconListDetails, IconMapPin, IconDeviceDesktop } from "@tabler/icons-react";
+import { IconSearch, IconEye, IconListDetails, IconMapPin, IconCircleCheck } from "@tabler/icons-react";
 import DataTable from '@components/layout/DataTable';
 import { useFetchMembers, useDeleteMember } from "../../queries/members";
 import { useFetchDevicesAttributes, useFetchDevices } from "../../queries/device";
@@ -20,7 +20,8 @@ const ViewMembers = () => {
     department: "",
     device: "",
     card_no: "",
-    phone_no: ""
+    phone_no: "",
+    status: "",
   });
 
 
@@ -176,12 +177,15 @@ const ViewMembers = () => {
 
 
           <Select
-            placeholder="Select Device"
-            data={allDevice?.map((dev) => ({ value: String(dev.id), label: dev.device_name })) || []}
-            value={filters.device}
-            onChange={(val) => setFilters({ ...filters, device: val })}
+            placeholder="Select Status"
+            data={[
+              { value: 'success', label: 'Success' },
+              { value: 'pending', label: 'Pending' },
+            ]}
+            value={filters.status}
+            onChange={(val) => setFilters({ ...filters, status: val })}
             clearable
-            leftSection={<IconDeviceDesktop size={16} />}
+            leftSection={<IconCircleCheck size={16} />}
             style={{ minWidth: 200 }}
           />
 

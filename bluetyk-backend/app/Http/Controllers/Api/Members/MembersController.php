@@ -185,6 +185,10 @@ class MembersController extends Controller
                 $query->where('phone_no', 'like', '%' . $request->phone_no . '%');
             }
 
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
             if ($request->filled('device')) {
                 $query->whereHas('memberToDevice.device', function ($q) use ($request) {
                     $q->where('id', $request->device);

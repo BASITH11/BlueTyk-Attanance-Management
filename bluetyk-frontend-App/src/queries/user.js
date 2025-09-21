@@ -110,8 +110,6 @@ export const useFetchUserById = (id) => {
 
 
 //updating the user
-
-//update device 
 const updateUser = async (formData) => {
     formData.append('_method', 'PUT');
     const response = await axios.post(`${prefix}/user-update`, formData,);

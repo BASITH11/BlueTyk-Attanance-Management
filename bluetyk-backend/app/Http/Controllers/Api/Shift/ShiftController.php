@@ -41,7 +41,7 @@ class ShiftController extends Controller
             $validator = Validator::make($request->all(), [
                 'shift_name' => 'required|string|max:255',
                 'shift_start' => 'required|date_format:H:i',
-                'shift_end' => 'required|date_formate:H:i',
+                'shift_end' => 'required|date_format:H:i',
                 'is_overnight' => 'nullable|boolean',
             ]);
 
@@ -117,7 +117,7 @@ class ShiftController extends Controller
                 'id' => 'required|exists:shifts,id',
                 'shift_name' => 'required|string|max:255|unique:shifts,shift_name,' . $request->id,
                 'shift_start' => 'required|date_format:H:i',
-                'shift_end' => 'required|date_formate:H:i',
+                'shift_end' => 'required|date_format:H:i',
                 'is_overnight' => 'nullable|boolean',
             ]);
 
@@ -128,7 +128,7 @@ class ShiftController extends Controller
                     'error' => 'Validation error',
                 ], 422);
             }
-
+            
 
             $shift = Shift::findOrFail($request->id);
 

@@ -28,7 +28,7 @@ const UpdateUser = () => {
     const user = data?.user || {};
     const { data: userTypes = {}, isloading } = useFetchUserAttributes();
     const UserTypes = userTypes?.user || [];
-    console.log(UserTypes);
+
 
 
     // Form setup

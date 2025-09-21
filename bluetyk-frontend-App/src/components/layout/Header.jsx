@@ -26,7 +26,8 @@ import {
     IconApps,
     IconDeviceDesktop,
     IconX,
-    IconLocation
+    IconLocation,
+    IconCalendarTime
 } from "@tabler/icons-react";
 import { useAuthStore } from "../../config/authStore";
 import { useLogout } from "../../queries/auth";
@@ -59,8 +60,10 @@ export default function Header({ toggle, opened }) {
             children: [
                 { label: "Locations", to: "/location/location-layout", icon: IconLocation },
                 { label: "Department", to: "/department/department-layout", icon: IconFolders },
+                { label: "Shift", to: "/shift/shift-layout", icon: IconCalendarTime },
                 { divider: true },
                 { label: "Todays Report", to: "/attendance/attendance-layout", icon: IconUser, color: "green" },
+
             ],
         },
 
