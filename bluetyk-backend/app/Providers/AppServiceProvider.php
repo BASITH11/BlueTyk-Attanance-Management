@@ -31,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
             $timeZone = Settings::where('description', 'time_zone')->value('value') ?? config('app.timezone');
             config(['app.timezone' => $timeZone]);
             date_default_timezone_set($timeZone);
+
         }
     }
 }
