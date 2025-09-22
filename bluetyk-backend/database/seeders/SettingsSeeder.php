@@ -66,6 +66,10 @@ class SettingsSeeder extends Seeder
                 'description' => 'sms_header',
                 'value'       => null,
             ],
+            [
+                'description' => 'sms_header',
+                'value'       => 'Asia/Kolkata',
+            ]
         
 
         ];

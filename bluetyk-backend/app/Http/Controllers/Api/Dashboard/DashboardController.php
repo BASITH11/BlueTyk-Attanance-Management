@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\Attendances;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -59,11 +60,7 @@ class DashboardController extends Controller
             $attendances = $attendances->filter(function ($attendance) {
                 $relation = $attendance->memberToDevice->first();
                 if (!$relation || !$relation->member) {
-                    // Log::warning('Invalid attendance relation', [
-                    //     'attendance_id' => $attendance->id,
-                    //     'device_serial_no' => $attendance->device_serial_no,
-                    //     'timestamp' => $attendance->timestamp,
-                    // ]);
+
                     return false;
                 }
                 return true;
@@ -85,19 +82,10 @@ class DashboardController extends Controller
             // Map to count per group
             $totalCount = $grouped->count();
 
-            // Latest 10 entries
-            $latestEntries = Attendances::with([
-                'memberToDevice.member',
-                'memberToDevice.device.deviceToLocation'
-            ])
-                ->whereDate('timestamp', $today)
-                ->orderByDesc('timestamp')
-                ->get();
 
+            #gets the latest entries
+            $formattedEntries = $this->getLatestUniqueAttendances($today, 10);
 
-            // Optionally, you can reuse your trait for grouping & formatting
-            $formattedEntries = $this->groupAndFormatAttendance($latestEntries);
-            $formattedEntries = $formattedEntries->take(10);
 
             return response()->json([
                 'status' => true,
@@ -120,5 +108,68 @@ class DashboardController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+
+
+
+
+    /**
+     * latest entries of member logged 
+     */
+    private function getLatestUniqueAttendances($date, $limit = 10)
+    {
+        // Step 1: Get all punches today ordered by latest timestamp
+        $latestUnique = DB::table('attendances')
+            ->select('device_serial_no', 'pin', 'timestamp')
+            ->whereDate('timestamp', $date)
+            ->orderByDesc('timestamp')
+            ->get();
+
+        // Step 2: Filter to get exactly $limit unique device+pin combinations
+        $latestArray = [];
+        foreach ($latestUnique as $entry) {
+            $key = $entry->device_serial_no . '_' . $entry->pin;
+
+            if (!isset($latestArray[$key])) {
+                $latestArray[$key] = [
+                    'device_serial_no' => $entry->device_serial_no,
+                    'pin' => $entry->pin,
+                    'timestamp' => $entry->timestamp,
+                ];
+            }
+
+            if (count($latestArray) == $limit) {
+                break;
+            }
+        }
+
+        // Step 3: Extract device+pin pairs for querying full attendance records
+        $devicePinPairs = [];
+        foreach ($latestArray as $entry) {
+            $devicePinPairs[] = [
+                'device_serial_no' => $entry['device_serial_no'],
+                'pin' => $entry['pin'],
+            ];
+        }
+
+        // Step 4: Fetch all punches for these latest unique users
+        $latestEntries = Attendances::with([
+            'memberToDevice.member',
+            'memberToDevice.device.deviceToLocation'
+        ])
+            ->whereDate('timestamp', $date)
+            ->where(function ($query) use ($devicePinPairs) {
+                foreach ($devicePinPairs as $pair) {
+                    $query->orWhere(function ($q) use ($pair) {
+                        $q->where('device_serial_no', $pair['device_serial_no'])
+                            ->where('pin', $pair['pin']);
+                    });
+                }
+            })
+            ->orderByDesc('timestamp')
+            ->get();
+
+        return $this->groupAndFormatAttendance($latestEntries);
     }
 }

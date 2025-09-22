@@ -231,7 +231,7 @@ const Dashboard = () => {
                   >
                     More
                   </Button>
-                </Box>
+                </Box>  
               )}
             </Card>
           </SimpleGrid>

@@ -15,6 +15,7 @@ class CommandQueues extends Model
     protected $fillable = [
         'device_serial_no',
         'command',
+        'priority',
         'sent',
     ];
 
@@ -30,6 +31,7 @@ class CommandQueues extends Model
         return self::create([
             'device_serial_no' => $deviceSerialNo,
             'command' => $command,
+            'priority' => 1,
             'sent' => false,
         ]);
     }

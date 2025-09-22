@@ -18,7 +18,7 @@ class AttendanceLogTimeTracker extends Model
 
     /**
      * function to create the attanacegetting commands 
-    */
+     */
     public static function AttendaceCommand()
     {
         $devices = Device::whereNotNull('device_serial_no')->get();
@@ -29,7 +29,7 @@ class AttendanceLogTimeTracker extends Model
             $deviceSerialNo = $device->device_serial_no;
 
             $tracker = self::where('device_serial_no', $deviceSerialNo)->first();
-             #if no entry then create an initial entry
+            #if no entry then create an initial entry
             if (!$tracker) {
                 $start = $now->copy()->startOfDay();
 
@@ -54,9 +54,10 @@ class AttendanceLogTimeTracker extends Model
             CommandQueues::create([
                 'device_serial_no' => $deviceSerialNo,
                 'command' => $cmd,
+                'priority' => 0,
                 'sent' => false,
             ]);
-             #after creation then update the last_synced_at with the $end 
+            #after creation then update the last_synced_at with the $end 
             self::where('device_serial_no', $deviceSerialNo)
                 ->update([
                     'last_synced_at' => $end,

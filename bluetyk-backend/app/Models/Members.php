@@ -117,6 +117,7 @@ class Members extends Model
       CommandQueues::create([
         'device_serial_no' => $device->device_serial_no,
         'command' => $cmds,
+        'priority' => 1,
         'sent' => false,
       ]);
 

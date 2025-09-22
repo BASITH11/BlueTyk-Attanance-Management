@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\Settings;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,13 +23,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
 
-        // Fetch SMS setting from DB
-        $smsEnabled = Settings::where('description', 'enable_sms')->value('value');
+        if (Schema::hasTable('settings')) {
+            $smsEnabled = Settings::where('description', 'enable_sms')->value('value');
+            $smsEnabled = filter_var($smsEnabled, FILTER_VALIDATE_BOOLEAN);
+            config(['app.sms_enabled' => $smsEnabled]);
 
-        // Convert string/number to boolean
-        $smsEnabled = filter_var($smsEnabled, FILTER_VALIDATE_BOOLEAN);
-
-        // Set it globally in config
-        config(['app.sms_enabled' => $smsEnabled]);
+            $timeZone = Settings::where('description', 'time_zone')->value('value') ?? config('app.timezone');
+            config(['app.timezone' => $timeZone]);
+            date_default_timezone_set($timeZone);
+        }
     }
 }

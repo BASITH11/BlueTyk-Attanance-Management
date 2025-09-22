@@ -322,6 +322,7 @@ class MembersController extends Controller
                     CommandQueues::create([
                         'command'          => $deleteCommand,
                         'device_serial_no' => $deviceSerialNo,
+                        'priority'        => 1,
                         'sent'             => false,
                     ]);
 
@@ -510,6 +511,7 @@ class MembersController extends Controller
                     CommandQueues::create([
                         'device_serial_no' => $deviceSerialNo,
                         'command' => $cmds,
+                        'priority' => 1,
                         'sent' => false,
                     ]);
                 }
@@ -593,6 +595,7 @@ class MembersController extends Controller
 
             if ($validator->fails()) {
                 return response()->json([
+                    
                     'status' => false,
                     'message' => $validator->errors()->first(),
                     'errors' => $validator->errors(),

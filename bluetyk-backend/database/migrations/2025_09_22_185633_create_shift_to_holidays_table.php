@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('command_queues', function (Blueprint $table) {
+        Schema::create('shift_to_holidays', function (Blueprint $table) {
             $table->id();
-            $table->string('device_serial_no');
-            $table->string('command');
-            $table->integer('priority');
-            $table->boolean('sent');
-            $table->timestamps();
+            $table->foreignId('shift_id')->constrained('shifts')->onDelete('cascade');
+            $table->foreignId('holiay_id')->constrained('holidays')->onDelete('cascade');
+            $table->softDeletes();
+            $table->timestamps();   
         });
     }
 
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('command_queues');
+        Schema::dropIfExists('shift_to_holidays');
     }
 };

@@ -23,7 +23,7 @@ class BiometricDeviceController extends Controller
                 Route::get('/iclock/getrequest.aspx', 'handleGet');
                 Route::post('/iclock/devicecmd.aspx', 'handlePost');
                 Route::get('/iclock/cdata.aspx', 'handleCdataGet');
-                Route::post('/iclock/cdata.aspx', 'handlePost');
+                Route::post('/iclock/cdata.aspx', 'handlePost');    
             });
     }
 
@@ -38,7 +38,8 @@ class BiometricDeviceController extends Controller
 
         $command = CommandQueues::where('device_serial_no', $sn)
             ->where('sent', false)
-            ->orderBy('id')
+            ->orderBy('priority','desc')
+            ->orderBy('id','asc')
             ->first();
 
 
@@ -156,7 +157,6 @@ class BiometricDeviceController extends Controller
         DeviceUserLogs::updateDeletedStatus();
         DeviceUserLogs::addUserDeviceToApp();
         DeviceUserLogs::updateAllSuccess();
-        // DeviceUserLogs::updatePendingFromDeviceToApp($sn);
 
 
         return response('OK', 200)->header('Content-Type', 'text/plain');
