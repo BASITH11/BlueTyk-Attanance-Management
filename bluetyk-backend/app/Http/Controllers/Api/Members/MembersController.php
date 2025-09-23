@@ -595,7 +595,7 @@ class MembersController extends Controller
 
             if ($validator->fails()) {
                 return response()->json([
-                    
+
                     'status' => false,
                     'message' => $validator->errors()->first(),
                     'errors' => $validator->errors(),
@@ -605,6 +605,7 @@ class MembersController extends Controller
             $member = Members::findOrFail($request->member_id);
 
             DB::beginTransaction();
+            $member->update(['status' => 'pending']);
 
             foreach ($request->device_assignments as $assignment) {
                 $device = Device::find($assignment['device_id']);
