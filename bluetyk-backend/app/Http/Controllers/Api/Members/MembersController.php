@@ -37,7 +37,7 @@ class MembersController extends Controller
                 Route::get('/get-memberById', 'show')->name('members.show');
                 Route::get('/get-member-image', 'getMemberImage')->name('members.getMemberImage');
                 Route::put('/update-member', 'update')->name('members.update');
-                Route::delete('/delte-from-device', 'destroyFromDevice')->name('member.deleteFromdevice');
+                Route::delete('/delete-from-device', 'destroyFromDevice')->name('member.deleteFromdevice');
                 Route::get('/get-unlinked-devices', 'getUnlinkedDevices')->name('member.unlinkedDevice');
                 Route::post('/assign-device', 'assignDevices')->name('member.assignDevice');
                 Route::post('/upload-members', 'upload')->name('member.upload');

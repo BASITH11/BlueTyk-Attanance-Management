@@ -159,7 +159,7 @@ export const useFetchEntryTypes = () => {
 
 // delete member from linked device
 const deleteMemberFromDevice = async ({ member_id, device_ids }) => {
-    const response = await axios.delete(`${prefix}/delte-from-device/`, {
+    const response = await axios.delete(`${prefix}/delete-from-device`, {
         data: { member_id, device_ids }
     }
     );

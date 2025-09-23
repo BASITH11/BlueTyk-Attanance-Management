@@ -20,6 +20,7 @@ import { Route as MembersMemberLayoutRouteImport } from './routes/members/member
 import { Route as MembersAddMembersRouteImport } from './routes/members/add-members'
 import { Route as MembersMemberIdRouteImport } from './routes/members/$memberId'
 import { Route as LocationLocationLayoutRouteImport } from './routes/location/location-layout'
+import { Route as HolidaysHolidayLayoutRouteImport } from './routes/holidays/holiday-layout'
 import { Route as DeviceViewDeviceRouteImport } from './routes/device/view-device'
 import { Route as DeviceDeviceLayoutRouteImport } from './routes/device/device-layout'
 import { Route as DeviceAddDeviceRouteImport } from './routes/device/add-device'
@@ -84,6 +85,11 @@ const MembersMemberIdRoute = MembersMemberIdRouteImport.update({
 const LocationLocationLayoutRoute = LocationLocationLayoutRouteImport.update({
   id: '/location/location-layout',
   path: '/location/location-layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HolidaysHolidayLayoutRoute = HolidaysHolidayLayoutRouteImport.update({
+  id: '/holidays/holiday-layout',
+  path: '/holidays/holiday-layout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeviceViewDeviceRoute = DeviceViewDeviceRouteImport.update({
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/device/add-device': typeof DeviceAddDeviceRoute
   '/device/device-layout': typeof DeviceDeviceLayoutRoute
   '/device/view-device': typeof DeviceViewDeviceRoute
+  '/holidays/holiday-layout': typeof HolidaysHolidayLayoutRoute
   '/location/location-layout': typeof LocationLocationLayoutRoute
   '/members/$memberId': typeof MembersMemberIdRoute
   '/members/add-members': typeof MembersAddMembersRoute
@@ -179,6 +186,7 @@ export interface FileRoutesByTo {
   '/device/add-device': typeof DeviceAddDeviceRoute
   '/device/device-layout': typeof DeviceDeviceLayoutRoute
   '/device/view-device': typeof DeviceViewDeviceRoute
+  '/holidays/holiday-layout': typeof HolidaysHolidayLayoutRoute
   '/location/location-layout': typeof LocationLocationLayoutRoute
   '/members/$memberId': typeof MembersMemberIdRoute
   '/members/add-members': typeof MembersAddMembersRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/device/add-device': typeof DeviceAddDeviceRoute
   '/device/device-layout': typeof DeviceDeviceLayoutRoute
   '/device/view-device': typeof DeviceViewDeviceRoute
+  '/holidays/holiday-layout': typeof HolidaysHolidayLayoutRoute
   '/location/location-layout': typeof LocationLocationLayoutRoute
   '/members/$memberId': typeof MembersMemberIdRoute
   '/members/add-members': typeof MembersAddMembersRoute
@@ -228,6 +237,7 @@ export interface FileRouteTypes {
     | '/device/add-device'
     | '/device/device-layout'
     | '/device/view-device'
+    | '/holidays/holiday-layout'
     | '/location/location-layout'
     | '/members/$memberId'
     | '/members/add-members'
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/device/add-device'
     | '/device/device-layout'
     | '/device/view-device'
+    | '/holidays/holiday-layout'
     | '/location/location-layout'
     | '/members/$memberId'
     | '/members/add-members'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/device/add-device'
     | '/device/device-layout'
     | '/device/view-device'
+    | '/holidays/holiday-layout'
     | '/location/location-layout'
     | '/members/$memberId'
     | '/members/add-members'
@@ -298,6 +310,7 @@ export interface RootRouteChildren {
   DeviceAddDeviceRoute: typeof DeviceAddDeviceRoute
   DeviceDeviceLayoutRoute: typeof DeviceDeviceLayoutRoute
   DeviceViewDeviceRoute: typeof DeviceViewDeviceRoute
+  HolidaysHolidayLayoutRoute: typeof HolidaysHolidayLayoutRoute
   LocationLocationLayoutRoute: typeof LocationLocationLayoutRoute
   MembersMemberIdRoute: typeof MembersMemberIdRoute
   MembersAddMembersRoute: typeof MembersAddMembersRoute
@@ -388,6 +401,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocationLocationLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/holidays/holiday-layout': {
+      id: '/holidays/holiday-layout'
+      path: '/holidays/holiday-layout'
+      fullPath: '/holidays/holiday-layout'
+      preLoaderRoute: typeof HolidaysHolidayLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/device/view-device': {
       id: '/device/view-device'
       path: '/device/view-device'
@@ -474,6 +494,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeviceAddDeviceRoute: DeviceAddDeviceRoute,
   DeviceDeviceLayoutRoute: DeviceDeviceLayoutRoute,
   DeviceViewDeviceRoute: DeviceViewDeviceRoute,
+  HolidaysHolidayLayoutRoute: HolidaysHolidayLayoutRoute,
   LocationLocationLayoutRoute: LocationLocationLayoutRoute,
   MembersMemberIdRoute: MembersMemberIdRoute,
   MembersAddMembersRoute: MembersAddMembersRoute,
