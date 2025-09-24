@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Shift;
 
 use App\Http\Controllers\Controller;
 use App\Models\Shift;
+use App\Models\ShiftToHolidays;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -43,6 +44,8 @@ class ShiftController extends Controller
                 'shift_start' => 'required|date_format:H:i',
                 'shift_end' => 'required|date_format:H:i',
                 'is_overnight' => 'nullable|boolean',
+                'holiday_ids'  => 'array', // new field
+                'holiday_ids.*' => 'exists:holidays,id',
             ]);
 
             if ($validator->fails()) {
@@ -53,12 +56,21 @@ class ShiftController extends Controller
                 ], 422);
             }
 
-            Shift::create([
+            $shift = Shift::create([
                 'shift_name' => $request->shift_name,
                 'shift_start' => $request->shift_start,
                 'shift_end' => $request->shift_end,
                 'is_overnight' => $request->is_overnight ?? false,
             ]);
+
+            if ($request->has('holiday_ids')) {
+                foreach ($request->holiday_ids as $holidayId) {
+                    ShiftToHolidays::create([
+                        'shift_id'   => $shift->id,
+                        'holiday_id' => $holidayId,
+                    ]);
+                }
+            }
 
             DB::commit();
 
@@ -119,6 +131,8 @@ class ShiftController extends Controller
                 'shift_start' => 'required|date_format:H:i',
                 'shift_end' => 'required|date_format:H:i',
                 'is_overnight' => 'nullable|boolean',
+                'holiday_ids'   => 'array',
+                'holiday_ids.*' => 'exists:holidays,id',
             ]);
 
             if ($validator->fails()) {
@@ -128,7 +142,7 @@ class ShiftController extends Controller
                     'error' => 'Validation error',
                 ], 422);
             }
-            
+
 
             $shift = Shift::findOrFail($request->id);
 
@@ -139,6 +153,29 @@ class ShiftController extends Controller
 
 
             $shift->save();
+
+
+            if ($request->has('holiday_ids')) {
+                # Remove old holidays that are not in the new array
+                ShiftToHolidays::where('shift_id', $shift->id)
+                    ->whereNotIn('holiday_id', $request->holiday_ids)
+                    ->delete();
+
+                # Add new ones
+                foreach ($request->holiday_ids as $holidayId) {
+                    ShiftToHolidays::updateOrCreate(
+                        [
+                            'shift_id' => $shift->id,
+                            'holiday_id' => $holidayId,
+                        ]
+                    );
+                }
+            } else {
+                # If no holiday_ids sent, remove all mappings
+                ShiftToHolidays::where('shift_id', $shift->id)->delete();
+            }
+
+
             DB::commit();
             return response()->json([
                 'status' => true,
@@ -203,7 +240,7 @@ class ShiftController extends Controller
                     'message' => 'shift ID is required',
                 ], 400);
             }
-            $shift = Shift::findOrFail($id);
+            $shift = Shift::With('shift_to_holidays.holiday')->findOrFail($id);
 
             return response()->json([
                 'status' => true,

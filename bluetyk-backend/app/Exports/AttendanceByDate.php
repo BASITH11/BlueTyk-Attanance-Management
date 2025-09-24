@@ -55,7 +55,7 @@ class AttendanceByDate implements WithMultipleSheets
         $groupedByDept = $formatted->groupBy('Department');
 
         foreach ($groupedByDept as $department => $records) {
-            $sheets[] = new \App\Exports\AttendanceExport(
+            $sheets[] = new \App\Exports\ExcelExport(
                 collect($records),
                 ['Name', 'Date', 'In Time', 'Out Time', 'Worked Duration', 'In Status', 'Out Status'], // headers
                 $department, // tab name

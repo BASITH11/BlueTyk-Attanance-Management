@@ -28,7 +28,8 @@ import {
     IconX,
     IconLocation,
     IconCalendarTime,
-    IconClock24
+    IconClock24,
+    IconMessage
 } from "@tabler/icons-react";
 import { useAuthStore } from "../../config/authStore";
 import { useLogout } from "../../queries/auth";
@@ -63,6 +64,7 @@ export default function Header({ toggle, opened }) {
                 { label: "Department", to: "/department/department-layout", icon: IconFolders },
                 { label: "Shift", to: "/shift/shift-layout", icon: IconCalendarTime },
                 { label: "Holidays", to: "/holidays/holiday-layout", icon: IconClock24 },
+                { label: "SmsLogs", to: "/smslog/smslog-layout", icon: IconMessage },
                 { divider: true },
                 { label: "Todays Report", to: "/attendance/attendance-layout", icon: IconUser, color: "green" },
 

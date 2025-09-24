@@ -15,4 +15,19 @@ class ShiftToHolidays extends Model
         'holiday_id',
     ];
     public $timestamps = true;
+
+/**
+ * relation towards shifts table
+ */
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class, 'shift_id','id');
+    }
+/**
+ * relation towards holidays table
+ */
+    public function holiday()
+    {
+        return $this->belongsTo(Holidays::class,  'holiday_id','id');
+    }
 }

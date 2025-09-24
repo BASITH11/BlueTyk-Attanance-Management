@@ -248,13 +248,17 @@ class MembersController extends Controller
                 if ($deviceSerialNo && $pin) {
                     $deleteCommand = "C:" . time() . ":DATA DELETE USERINFO PIN=" . $pin;
 
+                    DeviceUserLogs::where('device_serial_no', $deviceSerialNo)
+                        ->where('pin', $pin)
+                        ->delete(); 
+
                     CommandQueues::create([
                         'command'          => $deleteCommand,
                         'device_serial_no' => $deviceSerialNo,
                         'sent'             => false,
                     ]);
 
-                    // Send "Get All Users" for that device
+                    #Send "Get All Users" for that device
                     CommandQueues::sendGetAllUsersCommand($deviceSerialNo);
                 }
             }
@@ -319,6 +323,10 @@ class MembersController extends Controller
                 if ($deviceSerialNo && $pin) {
                     $deleteCommand = "C:" . time() . ":DATA DELETE USERINFO PIN=" . $pin;
 
+                    DeviceUserLogs::where('device_serial_no', $deviceSerialNo)
+                        ->where('pin', $pin)
+                        ->delete();
+
                     CommandQueues::create([
                         'command'          => $deleteCommand,
                         'device_serial_no' => $deviceSerialNo,
@@ -328,6 +336,8 @@ class MembersController extends Controller
 
                     // Refresh users for that device
                     CommandQueues::sendGetAllUsersCommand($deviceSerialNo);
+
+
                 }
 
                 // Delete only the mapping

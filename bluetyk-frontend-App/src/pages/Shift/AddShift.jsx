@@ -7,23 +7,26 @@ import {
     Grid,
     Box,
     Select,
+    MultiSelect,
 } from "@mantine/core";
 import { IconClock, IconLabel, } from '@tabler/icons-react';
 import { useAddShift } from '../../queries/shift';
 import { TimeInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { notify } from "@utils/helpers";
+import { useFetchHolidays } from '../../queries/holiday';
 
 
 const AddShift = () => {
 
-    // Form setup
+    //Form setup
     const form = useForm({
         initialValues: {
             shiftName: '',
             shiftStart: '',
             shiftEnd: '',
             isOverNight: '',
+            holidayIds: [],
         },
         validate: {
             shiftName: (value) => (value.length < 1 ? 'Shift Name is required' : null),
@@ -33,12 +36,7 @@ const AddShift = () => {
         }
     });
     const AddShiftMutation = useAddShift();
-
-
-
-
-
-
+    const { data: holidays } = useFetchHolidays({page:1, perPage:1000});
 
     const handleSubmit = (values) => {
         const formData = new FormData();
@@ -46,6 +44,9 @@ const AddShift = () => {
         formData.append("shift_start", values.shiftStart);
         formData.append("shift_end", values.shiftEnd);
         formData.append("is_overnight", values.isOverNight);
+        values.holidayIds.forEach((id, index) => {  
+            formData.append(`holiday_ids[${index}]`, id);
+        });
 
         AddShiftMutation.mutate(formData, {
             onSuccess: (data) => {
@@ -105,6 +106,18 @@ const AddShift = () => {
                                     { value: "1", label: "Over Night" },
                                     { value: "0", label: "Day" },
                                 ]}
+                            />
+
+                            <MultiSelect
+                                label="Assign Holidays"
+                                placeholder="Select holidays"
+                                searchable
+                                clearable
+                                data={(holidays?.data || []).map(h => ({
+                                    value: String(h.id),
+                                    label: h.name,
+                                }))}
+                                {...form.getInputProps("holidayIds")}
                             />
 
 

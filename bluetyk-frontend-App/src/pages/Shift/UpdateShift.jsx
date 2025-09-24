@@ -7,7 +7,8 @@ import {
     Grid,
     Box,
     Select,
-    Skeleton
+    Skeleton,
+    MultiSelect,
 } from "@mantine/core";
 import { IconLabel, IconClock } from '@tabler/icons-react';
 import { useForm } from "@mantine/form";
@@ -15,6 +16,7 @@ import { useUpdateShift, useFetchShiftById } from '../../queries/shift';
 import { TimeInput } from "@mantine/dates";
 import { notify } from "@utils/helpers";
 import { useSearch } from '@tanstack/react-router';
+import { useFetchHolidays } from '../../queries/holiday';
 
 
 const UpdateShift = () => {
@@ -23,6 +25,7 @@ const UpdateShift = () => {
     const search = useSearch({ from: '/shift/shift-layout' });
     const shiftId = search?.shiftId || null;
     const { data, isLoading } = useFetchShiftById(shiftId);
+    const { data: holidays } = useFetchHolidays({ page: 1, perPage: 1000 });
 
 
 
@@ -33,6 +36,7 @@ const UpdateShift = () => {
             shiftStart: '',
             shiftEnd: '',
             isOverNight: '',
+            holidayIds: [],
         },
         validate: {
             shiftName: (value) => (value.length < 1 ? 'Shift Name is required' : null),
@@ -50,6 +54,9 @@ const UpdateShift = () => {
                 shiftStart: data.shift_start || "",
                 shiftEnd: data.shift_end || "",
                 isOverNight: data.is_overnight ? "1" : "0",
+                holidayIds: data.shift_to_holidays
+                    ? data.shift_to_holidays.map(h => String(h.holiday_id))
+                    : [],
             });
         }
     }, [data]);
@@ -64,6 +71,9 @@ const UpdateShift = () => {
         formData.append("shift_start", values.shiftStart.slice(0, 5));
         formData.append("shift_end", values.shiftEnd.slice(0, 5))
         formData.append("is_overnight", values.isOverNight);
+        values.holidayIds.forEach((id, index) => {
+            formData.append(`holiday_ids[${index}]`, id);
+        });
 
         UpdateShiftMutation.mutate(formData, {
             onSuccess: (data) => {
@@ -129,6 +139,19 @@ const UpdateShift = () => {
                                             { value: "1", label: "Over Night" },
                                             { value: "0", label: "Day" },
                                         ]}
+                                    />
+
+
+                                    <MultiSelect
+                                        label="Assign Holidays"
+                                        placeholder="Select holidays"
+                                        searchable
+                                        clearable
+                                        data={(holidays?.data || []).map(h => ({
+                                            value: String(h.id),
+                                            label: h.name,
+                                        }))}
+                                        {...form.getInputProps("holidayIds")}
                                     />
 
 

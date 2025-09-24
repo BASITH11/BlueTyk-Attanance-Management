@@ -10,8 +10,7 @@ import {
 
 import {
     IconUserPlus,
-    IconUserCog,
-    IconEyeCheck,
+    IconUserCog
 } from '@tabler/icons-react';
 
 import ViewTodaysAttendance from './TodaysAttendance';

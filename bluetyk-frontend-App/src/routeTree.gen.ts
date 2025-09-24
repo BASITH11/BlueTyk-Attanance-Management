@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersUserLayoutRouteImport } from './routes/users/user-layout'
+import { Route as SmslogSmslogLayoutRouteImport } from './routes/smslog/smslog-layout'
 import { Route as ShiftShiftLayoutRouteImport } from './routes/shift/shift-layout'
 import { Route as MembersViewMembersRouteImport } from './routes/members/view-members'
 import { Route as MembersMemberLayoutRouteImport } from './routes/members/member-layout'
@@ -55,6 +56,11 @@ const IndexRoute = IndexRouteImport.update({
 const UsersUserLayoutRoute = UsersUserLayoutRouteImport.update({
   id: '/users/user-layout',
   path: '/users/user-layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SmslogSmslogLayoutRoute = SmslogSmslogLayoutRouteImport.update({
+  id: '/smslog/smslog-layout',
+  path: '/smslog/smslog-layout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShiftShiftLayoutRoute = ShiftShiftLayoutRouteImport.update({
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/members/member-layout': typeof MembersMemberLayoutRoute
   '/members/view-members': typeof MembersViewMembersRoute
   '/shift/shift-layout': typeof ShiftShiftLayoutRoute
+  '/smslog/smslog-layout': typeof SmslogSmslogLayoutRoute
   '/users/user-layout': typeof UsersUserLayoutRoute
   '/device/deviceEdit/$deviceId': typeof DeviceDeviceEditDeviceIdRoute
   '/members/memberEdit/$memberId': typeof MembersMemberEditMemberIdRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/members/member-layout': typeof MembersMemberLayoutRoute
   '/members/view-members': typeof MembersViewMembersRoute
   '/shift/shift-layout': typeof ShiftShiftLayoutRoute
+  '/smslog/smslog-layout': typeof SmslogSmslogLayoutRoute
   '/users/user-layout': typeof UsersUserLayoutRoute
   '/device/deviceEdit/$deviceId': typeof DeviceDeviceEditDeviceIdRoute
   '/members/memberEdit/$memberId': typeof MembersMemberEditMemberIdRoute
@@ -218,6 +226,7 @@ export interface FileRoutesById {
   '/members/member-layout': typeof MembersMemberLayoutRoute
   '/members/view-members': typeof MembersViewMembersRoute
   '/shift/shift-layout': typeof ShiftShiftLayoutRoute
+  '/smslog/smslog-layout': typeof SmslogSmslogLayoutRoute
   '/users/user-layout': typeof UsersUserLayoutRoute
   '/device/deviceEdit/$deviceId': typeof DeviceDeviceEditDeviceIdRoute
   '/members/memberEdit/$memberId': typeof MembersMemberEditMemberIdRoute
@@ -244,6 +253,7 @@ export interface FileRouteTypes {
     | '/members/member-layout'
     | '/members/view-members'
     | '/shift/shift-layout'
+    | '/smslog/smslog-layout'
     | '/users/user-layout'
     | '/device/deviceEdit/$deviceId'
     | '/members/memberEdit/$memberId'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/members/member-layout'
     | '/members/view-members'
     | '/shift/shift-layout'
+    | '/smslog/smslog-layout'
     | '/users/user-layout'
     | '/device/deviceEdit/$deviceId'
     | '/members/memberEdit/$memberId'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/members/member-layout'
     | '/members/view-members'
     | '/shift/shift-layout'
+    | '/smslog/smslog-layout'
     | '/users/user-layout'
     | '/device/deviceEdit/$deviceId'
     | '/members/memberEdit/$memberId'
@@ -317,6 +329,7 @@ export interface RootRouteChildren {
   MembersMemberLayoutRoute: typeof MembersMemberLayoutRoute
   MembersViewMembersRoute: typeof MembersViewMembersRoute
   ShiftShiftLayoutRoute: typeof ShiftShiftLayoutRoute
+  SmslogSmslogLayoutRoute: typeof SmslogSmslogLayoutRoute
   UsersUserLayoutRoute: typeof UsersUserLayoutRoute
   DeviceDeviceEditDeviceIdRoute: typeof DeviceDeviceEditDeviceIdRoute
   MembersMemberEditMemberIdRoute: typeof MembersMemberEditMemberIdRoute
@@ -357,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/users/user-layout'
       fullPath: '/users/user-layout'
       preLoaderRoute: typeof UsersUserLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/smslog/smslog-layout': {
+      id: '/smslog/smslog-layout'
+      path: '/smslog/smslog-layout'
+      fullPath: '/smslog/smslog-layout'
+      preLoaderRoute: typeof SmslogSmslogLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shift/shift-layout': {
@@ -501,6 +521,7 @@ const rootRouteChildren: RootRouteChildren = {
   MembersMemberLayoutRoute: MembersMemberLayoutRoute,
   MembersViewMembersRoute: MembersViewMembersRoute,
   ShiftShiftLayoutRoute: ShiftShiftLayoutRoute,
+  SmslogSmslogLayoutRoute: SmslogSmslogLayoutRoute,
   UsersUserLayoutRoute: UsersUserLayoutRoute,
   DeviceDeviceEditDeviceIdRoute: DeviceDeviceEditDeviceIdRoute,
   MembersMemberEditMemberIdRoute: MembersMemberEditMemberIdRoute,

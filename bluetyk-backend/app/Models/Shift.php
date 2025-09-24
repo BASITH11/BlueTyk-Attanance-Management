@@ -45,4 +45,14 @@ class Shift extends Model
         }
         return $shift->id;
     }
+
+
+    /**
+     * relation towards shifts_to_holidays table
+     */
+
+    public function shift_to_holidays()
+    {
+        return $this->hasMany(ShiftToHolidays::class, 'shift_id', 'id');
+    }
 }

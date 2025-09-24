@@ -12,6 +12,7 @@ use App\Models\Attendances;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use Carbon\Carbon;
 
 class BiometricDeviceController extends Controller
 {
@@ -23,7 +24,7 @@ class BiometricDeviceController extends Controller
                 Route::get('/iclock/getrequest.aspx', 'handleGet');
                 Route::post('/iclock/devicecmd.aspx', 'handlePost');
                 Route::get('/iclock/cdata.aspx', 'handleCdataGet');
-                Route::post('/iclock/cdata.aspx', 'handlePost');    
+                Route::post('/iclock/cdata.aspx', 'handlePost');
             });
     }
 
@@ -38,8 +39,8 @@ class BiometricDeviceController extends Controller
 
         $command = CommandQueues::where('device_serial_no', $sn)
             ->where('sent', false)
-            ->orderBy('priority','desc')
-            ->orderBy('id','asc')
+            ->orderBy('priority', 'desc')
+            ->orderBy('id', 'asc')
             ->first();
 
 
@@ -118,10 +119,13 @@ class BiometricDeviceController extends Controller
                     $pin = (int) $columns[0];
                     $timestamp = $columns[1];
 
+                    $timeZone = config('app.timezone');
+                    $convertedTimestamp = Carbon::parse($timestamp)->timezone($timeZone);
+
                     // Insert only if not already existing
                     $exists = Attendances::where('device_serial_no', $sn)
                         ->where('pin', $pin)
-                        ->where('timestamp', $timestamp)
+                        ->where('timestamp', $convertedTimestamp)
                         ->exists();
 
                     if (!$exists) {
@@ -129,7 +133,7 @@ class BiometricDeviceController extends Controller
                             Attendances::create([
                                 'device_serial_no' => $sn,
                                 'pin' => $pin,
-                                'timestamp' => $timestamp,
+                                'timestamp' => $convertedTimestamp,
                                 'status' => $columns[2] ?? null,
                                 'verified' => $columns[3] ?? null,
                             ]);

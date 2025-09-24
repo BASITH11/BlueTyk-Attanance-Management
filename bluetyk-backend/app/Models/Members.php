@@ -54,6 +54,11 @@ class Members extends Model
     return $this->belongsTo(Shift::class, 'shift_id', 'id');
   }
 
+  public function smsLogs()
+  {
+    return $this->hasMany(smsLog::class, 'member_id', 'id');
+  }
+
   /**
    * Add a single pending member to their assigned device.
    */
@@ -66,7 +71,6 @@ class Members extends Model
         $q->where('device_serial_no', $deviceSerialNo);
       })
       ->first();
-
 
 
     if (!$memberToDevice) {
@@ -86,7 +90,6 @@ class Members extends Model
       $fullname = $member->name;
       $card = $member->card_no;
       $pin = DeviceUserLogs::getNextAvailablePin($device->device_serial_no); // Implement this
-
       #if pn already assigned skip
       if ($pin) {
         $exists = MemberToDevice::where('device_user_id', $pin)

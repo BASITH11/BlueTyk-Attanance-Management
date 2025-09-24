@@ -35,5 +35,10 @@ class MemberToDevice extends Model
     {
         return $this->belongsTo(Members::class, 'member_id', 'id');
     }
+
+    public function smsLogs()
+    {
+        return $this->hasMany(SmsLog::class, 'member_id', 'member_id');
+    }
   
 }

@@ -20,4 +20,13 @@ class Holidays extends Model
     ];
 
     public $timestamps = true;
+
+
+    /**
+     * relation towards shifts_to_holidays table
+     */
+    public function shift_to_holidays()
+    {
+        return $this->hasMany(ShiftToHolidays::class, 'holiday_id', 'id');
+    }
 }

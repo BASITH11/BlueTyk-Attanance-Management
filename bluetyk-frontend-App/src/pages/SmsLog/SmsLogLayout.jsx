@@ -2,37 +2,33 @@ import React, { useState, useEffect } from 'react';
 
 import {
     Paper,
-    Box,
     Tabs,
     Text,
     Group,
-    Title,
-    rem
+    Title
 } from '@mantine/core'
 
 import {
-    IconUserPlus,
-    IconUserCog,
+    IconAlarmPlus,
+    IconEdit,
     IconEyeCheck,
-    IconMapPin,
+    IconEyeCog,
+    IconEyeEdit,
     IconMapPin2,
-    IconClockPlus,
-    IconClockSearch
+    IconMessage
 } from '@tabler/icons-react';
+import SmsLogs from './SmsLogs';
 import { useSearch } from '@tanstack/react-router';
 import { useNavigate } from '@tanstack/react-router';
-import AddHolidays from './AddHoliday';
-import ViewHolidays from './ViewHoliday';
-import UpdateHoliday from './UpdateHoliday';
 
 
 
-const HolidayLayout = () => {
+const SmsLogLayout = () => {
 
-    const search = useSearch({ from: '/holidays/holiday-layout' });
+    const search = useSearch({ from: '/smslog/smslog-layout' });
     const navigate = useNavigate();
 
-    const holidayId = search?.id || null;
+    // const shiftId = search?.id || null;
 
     const searchTab = search?.tab || 'add';
 
@@ -47,7 +43,7 @@ const HolidayLayout = () => {
     const handleTabChange = (value) => {
         setActiveTab(value);
         navigate({
-            to: '/holidays/holiday-layout',
+            to: '/smslog/smslog-layout',
             search: {
                 tab: value,
 
@@ -60,8 +56,8 @@ const HolidayLayout = () => {
         <Paper p="lg" style={{ backgroundColor: "var(--app-primary-background-color)" }}>
             <Group position="apart" mb="md">
                 <div>
-                    <Title order={3}>Holidays Management</Title>
-                    <Text c="dimmed" size="sm">Add or view all registered Holidays</Text>
+                    <Title order={3}>SmsLogs Management</Title>
+                    <Text c="dimmed" size="sm">view all SmsLogs</Text>
                 </div>
             </Group>
 
@@ -75,21 +71,21 @@ const HolidayLayout = () => {
                 <Tabs.List >
                     <Tabs.Tab
                         value="add"
-                        leftSection={<IconClockPlus size={18} />}
+                        leftSection={<IconMessage size={18} />}
                     >
-                        Add Holiday
+                        Sms Logs
                     </Tabs.Tab>
-                    <Tabs.Tab
+                    {/* <Tabs.Tab
                         value="view"
-                        leftSection={<IconClockSearch size={18} />}
+                        leftSection={<IconEyeCog size={18} />}
                     >
-                        View Holiday
-                    </Tabs.Tab>
+                        View Shift
+                    </Tabs.Tab> */}
 
 
                     {searchTab === "edit" && (
-                        <Tabs.Tab value="edit" leftSection={<IconEyeCheck size={18} />} >
-                            Update Holiday
+                        <Tabs.Tab value="edit" leftSection={<IconEdit size={18} />} >
+                            Update Shift
                         </Tabs.Tab>
                     )}
 
@@ -99,21 +95,21 @@ const HolidayLayout = () => {
                 <Tabs.Panel value="add" pt="md">
                     {/* Replace with <AddDevice /> */}
                     <Paper p="md" withBorder >
-                        <AddHolidays />
+                        <SmsLogs/>
                     </Paper>
                 </Tabs.Panel>
 
                 <Tabs.Panel value="view" pt="md">
                     {/* Replace with <ViewDevices /> */}
                     <Paper p="md" withBorder >
-                        <ViewHolidays />
+                       
                     </Paper>
                 </Tabs.Panel>
 
                 <Tabs.Panel value="edit" pt="md">
                     {/* Replace with <ViewDevices /> */}
                     <Paper p="md" withBorder >
-                      <UpdateHoliday/>
+                      
                     </Paper>
                 </Tabs.Panel>
 
@@ -127,4 +123,4 @@ const HolidayLayout = () => {
         </Paper>
     );
 }
-export default HolidayLayout;
+export default SmsLogLayout;

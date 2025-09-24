@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('shift_to_holidays', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shift_id')->constrained('shifts')->onDelete('cascade');
-            $table->foreignId('holiay_id')->constrained('holidays')->onDelete('cascade');
+            $table->foreignId('holiday_id')->constrained('holidays')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();   
         });

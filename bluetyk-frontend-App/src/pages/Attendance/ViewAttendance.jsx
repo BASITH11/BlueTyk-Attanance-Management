@@ -1,15 +1,11 @@
-import { React, useState } from "react";
-import { Paper, TextInput, Select, Group, Button, Flex, Skeleton, Box, Title, Text, ScrollArea, Timeline, ActionIcon } from "@mantine/core";
+import { useState } from "react";
+import { Paper, TextInput, Select, Group, Button, Flex, Skeleton, Box, Title, Text, ScrollArea, } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import {
     IconMapPin,
     IconDeviceDesktop,
     IconCalendar,
     IconSearch,
-    IconX,
-    IconCheck,
-    IconClock,
-    IconEye
 } from "@tabler/icons-react";
 import DataTable from "@components/layout/DataTable";
 import { useFetchAttendance } from "../../queries/attendance";

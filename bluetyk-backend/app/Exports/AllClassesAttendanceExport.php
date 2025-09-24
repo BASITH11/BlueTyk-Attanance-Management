@@ -30,7 +30,7 @@ class AllClassesAttendanceExport implements WithMultipleSheets
                     ];
                 });
 
-            $sheets[] = new AttendanceExport(
+            $sheets[] = new ExcelExport(
                 $rawData,
                 ['Name', 'In Time', 'Out Time', 'Worked Duration', 'In Status', 'Out Status'], // custom headers
                 $className,

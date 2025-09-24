@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Exists;
+use Illuminate\Support\Facades\Log;
 
 class DeviceUserLogs extends Model
 {

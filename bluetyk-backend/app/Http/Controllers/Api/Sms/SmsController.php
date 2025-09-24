@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Attendances;
 use App\Models\SmsLog;
 use Carbon\Carbon;
+use App\Exports\SmsLogExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SmsController extends Controller
 {
@@ -31,6 +33,7 @@ class SmsController extends Controller
             ->group(function () {
                 Route::post('/sent-sms', 'sentSmsNotLoggedToday')->name('sms.sentSms');
                 Route::post('/sent-sms-logged', 'sendSmsLoggedToday')->name('sms.sentSmsLogged');
+                Route::get('/get-sms-logs', 'getSmsLogs')->name('sms.getSmsLogs');
             });
     }
 
@@ -158,7 +161,7 @@ class SmsController extends Controller
                             ->format('d/m/y h:i A');
                         // Example: 19/09/25 08:45 AM
                     }
-                    
+
                     SendSmsJob::dispatch(
                         $item['member_id'],
                         $item['member_name'],
@@ -177,6 +180,84 @@ class SmsController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'status' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+
+    /**
+     * function to get the smslogs
+     */
+    public function getSmsLogs(Request $request)
+    {
+        try {
+
+            $date = $request->input('date') ?? now()->toDateString();
+            $perPage = $request->get('per_page', 100);
+
+            $query = SmsLog::with('memberToDevice.member.department', 'memberToDevice.device')
+                ->whereDate('timestamp', $date)
+                ->orderBy('id', 'desc');
+
+            // Apply filters dynamically
+            if ($request->filled('name')) {
+                $query->whereHas('memberToDevice.member', function ($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->name . '%');
+                });
+            }
+
+            if ($request->filled('card_no')) {
+                $query->whereHas('memberToDevice.member', function ($q) use ($request) {
+                    $q->where('card_no', 'like', '%' . $request->card_no . '%');
+                });
+            }
+
+            if ($request->filled('phone_no')) {
+                $query->whereHas('memberToDevice.member', function ($q) use ($request) {
+                    $q->where('phone_no', 'like', '%' . $request->phone_no . '%');
+                });
+            }
+
+            if ($request->filled('department')) {
+                $query->whereHas('memberToDevice.member.department', function ($q) use ($request) {
+                    $q->where('department_id', $request->department);
+                });
+            }
+
+            if ($request->filled('device')) {
+                $query->whereHas('memberToDevice.device', function ($q) use ($request) {
+                    $q->where('id', $request->device);
+                });
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+            
+
+
+            if ($request->get('export') === 'excel') {
+                $filters = $request->only(['name', 'card_no', 'phone_no', 'department', 'device', 'status']);
+                return Excel::download(new SmsLogExport($date, $filters), 'sms_logs_' . ($date ?? now()->toDateString()) . '.xlsx');
+            }
+
+            $smsLogs = $query->paginate($perPage);
+            #adding serial number to the logs
+
+            $smsLogs->getCollection()->transform(function ($item, $index) use ($smsLogs) {
+                $item->sl_no = ($smsLogs->currentPage() - 1) * $smsLogs->perPage() + ($index + 1);
+                return $item;
+            });
+
+            return response()->json([
+                'status'  => true,  
+                'data'    => $smsLogs,
+                'message' => 'sms logs retrieved successfully',
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'  => false,
                 'message' => $e->getMessage(),
             ]);
         }

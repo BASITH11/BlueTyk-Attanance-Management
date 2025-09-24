@@ -12,19 +12,19 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\BeforeSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class AttendanceExport implements FromCollection, WithTitle, WithHeadings, WithStyles, WithCustomStartCell, WithEvents
+class ExcelExport implements FromCollection, WithTitle, WithHeadings, WithStyles, WithCustomStartCell, WithEvents
 {
     protected Collection $data;
     protected array $headers;
     protected string $title;      // Sheet tab title
-    protected ?string $date;
+    protected string $date;
     protected string $sheetTitlePrefix; // configurable prefix for visible title
 
     public function __construct(Collection $data, array $headers, string $title, ?string $date = null, string $sheetTitlePrefix)
     {
         $this->data             = $data;
         $this->headers          = $headers;
-        $this->title            = $title;
+        $this->title            = $this->sanitizeSheetName($title);
         $this->date             = $date;
         $this->sheetTitlePrefix = $sheetTitlePrefix;
     }
@@ -81,5 +81,19 @@ class AttendanceExport implements FromCollection, WithTitle, WithHeadings, WithS
     public function title(): string
     {
         return $this->title; // Tab name
+    }
+
+
+    /**
+     * Sanitize sheet name for Excel
+     */
+    private function sanitizeSheetName(string $name): string
+    {
+        $name = trim($name);
+        if (empty($name)) {
+            $name = 'Sheet';
+        }
+        // Replace invalid characters
+        return preg_replace('/[\\\\\/\*\[\]\:\?]/', '_', $name);
     }
 }

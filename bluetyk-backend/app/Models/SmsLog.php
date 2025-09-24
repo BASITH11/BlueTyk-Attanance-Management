@@ -22,4 +22,15 @@ class SmsLog extends Model
     ];
 
     public $timestamps = true;
+
+
+    public function member()
+    {
+        return $this->belongsTo(Members::class, 'member_id', 'id');
+    }
+
+    public function memberToDevice()
+    {
+        return $this->belongsTo(MemberToDevice::class, 'member_id', 'member_id');
+    }
 }
