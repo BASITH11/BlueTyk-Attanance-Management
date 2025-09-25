@@ -9,12 +9,7 @@ import {
 } from '@mantine/core'
 
 import {
-    IconAlarmPlus,
     IconEdit,
-    IconEyeCheck,
-    IconEyeCog,
-    IconEyeEdit,
-    IconMapPin2,
     IconMessage
 } from '@tabler/icons-react';
 import SmsLogs from './SmsLogs';
@@ -94,7 +89,7 @@ const SmsLogLayout = () => {
 
                 <Tabs.Panel value="add" pt="md">
                     {/* Replace with <AddDevice /> */}
-                    <Paper p="md" withBorder >
+                    <Paper p="md" style={{backgroundColor:"var(--app-primary-background-color)"}} >
                         <SmsLogs/>
                     </Paper>
                 </Tabs.Panel>

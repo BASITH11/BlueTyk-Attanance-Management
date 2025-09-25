@@ -17,8 +17,7 @@ import { capitalize } from "../../utils/helpers";
 import { useAuthStore } from "../../config/authStore";
 import { useFetchDepartments } from "../../queries/department";
 import { DateInput } from "@mantine/dates";
-import { useSendSmsLogged } from "../../queries/sms";
-import { notify } from "@utils/helpers";
+
 
 
 
@@ -48,19 +47,7 @@ const ViewTodaysAttendance = () => {
     const { data: allDepartmentsResponse = {} } = useFetchDepartments({ page: 1, perPage: 100 });
     const allDepartments = allDepartmentsResponse?.data || [];
 
-    const sendSmsMutation = useSendSmsLogged();
 
-    const handleSendSMS = () => {
-        sendSmsMutation.mutate(undefined, {
-            onSuccess: (response) => {
-                notify({
-                    title: "Success",
-                    message: response.message,
-                    iconType: "success",
-                });
-            },
-        });
-    };
 
     const columns = [
         { accessor: "device_name", label: "Device" },
@@ -104,18 +91,6 @@ const ViewTodaysAttendance = () => {
                             onClick={downloadAttendance}
                         >
                             <IconDownload size={20} />
-                        </ActionIcon>
-                    </Tooltip>
-
-                    <Tooltip label="Send SMS">
-                        <ActionIcon
-                            variant="outline"
-                            color="blue"
-                            radius="xl"
-                            size="lg"
-                            onClick={handleSendSMS}
-                        >
-                            <IconMessage size={20} />
                         </ActionIcon>
                     </Tooltip>
                 </Group>

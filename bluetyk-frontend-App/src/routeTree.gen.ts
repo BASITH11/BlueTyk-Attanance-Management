@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestRouteImport } from './routes/test'
+import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -36,6 +37,11 @@ import { Route as DeviceDeviceEditDeviceIdRouteImport } from './routes/device/de
 const TestRoute = TestRouteImport.update({
   id: '/test',
   path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoAccessRoute = NoAccessRouteImport.update({
+  id: '/no-access',
+  path: '/no-access',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/no-access': typeof NoAccessRoute
   '/test': typeof TestRoute
   '/attendance/attendance-layout': typeof AttendanceAttendanceLayoutRoute
   '/attendance/todays-attendance': typeof AttendanceTodaysAttendanceRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/no-access': typeof NoAccessRoute
   '/test': typeof TestRoute
   '/attendance/attendance-layout': typeof AttendanceAttendanceLayoutRoute
   '/attendance/todays-attendance': typeof AttendanceTodaysAttendanceRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/no-access': typeof NoAccessRoute
   '/test': typeof TestRoute
   '/attendance/attendance-layout': typeof AttendanceAttendanceLayoutRoute
   '/attendance/todays-attendance': typeof AttendanceTodaysAttendanceRoute
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/no-access'
     | '/test'
     | '/attendance/attendance-layout'
     | '/attendance/todays-attendance'
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/no-access'
     | '/test'
     | '/attendance/attendance-layout'
     | '/attendance/todays-attendance'
@@ -287,6 +298,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/no-access'
     | '/test'
     | '/attendance/attendance-layout'
     | '/attendance/todays-attendance'
@@ -313,6 +325,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
+  NoAccessRoute: typeof NoAccessRoute
   TestRoute: typeof TestRoute
   AttendanceAttendanceLayoutRoute: typeof AttendanceAttendanceLayoutRoute
   AttendanceTodaysAttendanceRoute: typeof AttendanceTodaysAttendanceRoute
@@ -342,6 +355,13 @@ declare module '@tanstack/react-router' {
       path: '/test'
       fullPath: '/test'
       preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/no-access': {
+      id: '/no-access'
+      path: '/no-access'
+      fullPath: '/no-access'
+      preLoaderRoute: typeof NoAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -505,6 +525,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
+  NoAccessRoute: NoAccessRoute,
   TestRoute: TestRoute,
   AttendanceAttendanceLayoutRoute: AttendanceAttendanceLayoutRoute,
   AttendanceTodaysAttendanceRoute: AttendanceTodaysAttendanceRoute,

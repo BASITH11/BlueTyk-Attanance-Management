@@ -193,8 +193,60 @@ class SmsController extends Controller
     {
         try {
 
+
             $date = $request->input('date') ?? now()->toDateString();
             $perPage = $request->get('per_page', 100);
+
+            #total students punched by date 
+            $attendances = Attendances::with([
+                'memberToDevice.member',
+                'memberToDevice.device.deviceToLocation'
+            ])
+                ->whereDate('timestamp', $date)
+                ->get();
+
+
+            $attendances = $attendances->filter(function ($attendance) {
+                $relation = $attendance->memberToDevice->first();
+                if (!$relation || !$relation->member) {
+
+                    return false;
+                }
+                return true;
+            });
+
+
+
+            // Group by member + device + date
+            $grouped = $attendances->groupBy(function ($attendance) {
+                $relation = $attendance->memberToDevice->first();
+
+                $memberId = optional($relation->member)->id; // safe access
+
+                return $memberId . '-' .
+                    $attendance->device_serial_no . '-' .
+                    Carbon::parse($attendance->timestamp)->format('Y-m-d');
+            });
+
+            // Map to count per group
+            $totalPunches = $grouped->count();
+
+
+            #total sms send count
+            $TotalCount = SmsLog::whereDate('timestamp', $date)->distinct('member_id')->count();
+            #members with successful sms
+            $successMemberIds = SmsLog::whereDate('timestamp', $date)
+                ->where('status', 'success')
+                ->distinct()
+                ->pluck('member_id');
+            $successCount = $successMemberIds->count();
+            #members with failed sms
+            $failedCount = SmsLog::whereDate('timestamp', $date)
+                ->where('status', 'failure')
+                ->whereNotIn('member_id', $successMemberIds)
+                ->distinct('member_id')
+                ->count();
+
 
             $query = SmsLog::with('memberToDevice.member.department', 'memberToDevice.device')
                 ->whereDate('timestamp', $date)
@@ -232,9 +284,20 @@ class SmsController extends Controller
             }
 
             if ($request->filled('status')) {
-                $query->where('status', $request->status);
+                if ($request->status === 'failure') {
+                    // first get member_ids that have success
+                    $successMemberIds = SmsLog::whereDate('timestamp', $date)
+                        ->where('status', 'success')
+                        ->pluck('member_id');
+
+                    // now filter only failures not in success
+                    $query->where('status', 'failure')
+                        ->whereNotIn('member_id', $successMemberIds);
+                } else {
+                    // normal case (success, pending, etc.)
+                    $query->where('status', $request->status);
+                }
             }
-            
 
 
             if ($request->get('export') === 'excel') {
@@ -251,8 +314,14 @@ class SmsController extends Controller
             });
 
             return response()->json([
-                'status'  => true,  
-                'data'    => $smsLogs,
+                'status'  => true,
+                'data'    => [
+                    'sms_logs' => $smsLogs,
+                    'total_count' => $TotalCount,
+                    'success_count' => $successCount,
+                    'failed_count' => $failedCount,
+                    'total_punches' => $totalPunches,
+                ],
                 'message' => 'sms logs retrieved successfully',
             ]);
         } catch (Exception $e) {

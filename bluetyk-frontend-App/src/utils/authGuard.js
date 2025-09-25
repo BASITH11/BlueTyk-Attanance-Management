@@ -9,9 +9,9 @@ const skipAuthForPaths = ["/login"];
  * @returns false if should not be redirected, redirect path otherwise
  */
 export const shouldRedirect = (currentPath) => {
-    const { isAuthenticated } = useAuthStore.getState();
+    const { isAuthenticated, enable_sms } = useAuthStore.getState();
 
-
+ 
     if (!isAuthenticated && !skipAuthForPaths.includes(currentPath)) {
         return "/login";
     }
@@ -19,6 +19,12 @@ export const shouldRedirect = (currentPath) => {
     if (isAuthenticated && skipAuthForPaths.includes(currentPath)) {
         return "/dashboard";
     }
+
+       if (currentPath.startsWith("/smslog") && !enable_sms) {
+        return "/no-access";
+    }
+
+
 
     return false;
 };

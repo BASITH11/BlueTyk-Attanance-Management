@@ -42,6 +42,7 @@ export default function Header({ toggle, opened }) {
     const logout = useLogout();
     const menuScrollRef = useRef();
     const authenticatedUser = useAuthStore.getState();
+    const { enable_sms } = authenticatedUser;
     const theme = useMantineTheme();
 
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -64,11 +65,10 @@ export default function Header({ toggle, opened }) {
                 { label: "Department", to: "/department/department-layout", icon: IconFolders },
                 { label: "Shift", to: "/shift/shift-layout", icon: IconCalendarTime },
                 { label: "Holidays", to: "/holidays/holiday-layout", icon: IconClock24 },
-                { label: "SmsLogs", to: "/smslog/smslog-layout", icon: IconMessage },
+                enable_sms && { label: "SmsLogs", to: "/smslog/smslog-layout", icon: IconMessage },
                 { divider: true },
                 { label: "Todays Report", to: "/attendance/attendance-layout", icon: IconUser, color: "green" },
-
-            ],
+            ].filter(Boolean),
         },
 
     ];

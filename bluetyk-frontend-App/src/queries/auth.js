@@ -33,6 +33,7 @@ export const useLogin = (email, password) => {
                 authToken: data.data.token,
                 user: data.data.user,
                 entity: data.data.entity_name,
+                enable_sms: data.data.enable_sms,
                 isAuthenticated: true,
             }));
            

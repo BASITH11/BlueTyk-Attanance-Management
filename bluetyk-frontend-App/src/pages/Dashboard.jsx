@@ -184,11 +184,11 @@ const Dashboard = () => {
                     >
                       {/* Top-right badge */}
                       <Badge
-                        color="green"
+                        color={entry.out_time && entry.out_time !== "Still Working" ? "red" : "green"}
                         variant="light"
                         style={{ position: "absolute", top: 10, right: 10 }}
                       >
-                        In Office
+                        {entry.out_time && entry.out_time !== "Still Working" ? "Out of Office" : "In Office"}
                       </Badge>
 
                       <Group noWrap align="center">
@@ -231,7 +231,7 @@ const Dashboard = () => {
                   >
                     More
                   </Button>
-                </Box>  
+                </Box>
               )}
             </Card>
           </SimpleGrid>

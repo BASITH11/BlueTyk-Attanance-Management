@@ -40,7 +40,6 @@ class LoginController extends Controller
 
         try {
 
-
             $request->validate([
                 'email' => 'required|email',
                 'password' => 'required|string|min:6',
@@ -56,7 +55,10 @@ class LoginController extends Controller
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;
-            $entityName = Settings::where('description', 'entity_name')->first()?->value ?? 'Members';
+            $settings = Settings::pluck('value', 'description')->toArray();
+            $entityName = $settings['entity_name'] ?? 'Members';
+            $smsEnabled = filter_var($settings['enable_sms'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
 
 
             return response()->json([
@@ -64,15 +66,16 @@ class LoginController extends Controller
                 'data' => [
                     'user' => $user,
                     'token' => $token,
-                    'entity_name'=>$entityName,
+                    'entity_name' => $entityName,
+                    'enable_sms' => $smsEnabled,
                 ],
-                'status'=>true,
-            ],200);
+                'status' => true,
+            ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
-                'status' =>false,
-            ],500);
+                'status' => false,
+            ], 500);
         }
     }
 
@@ -84,7 +87,7 @@ class LoginController extends Controller
             // Revoke current access token
             $request->user()->currentAccessToken()->delete();
 
-            return response()->json(['status'=>true,'message' => 'Logged out successfully'],200);
+            return response()->json(['status' => true, 'message' => 'Logged out successfully'], 200);
         } catch (Exception $e) {
             return response()->json([
                 'status' => false,
