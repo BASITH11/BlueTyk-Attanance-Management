@@ -70,20 +70,11 @@ export const DownloadSmsLogs = async ({ filters = {} }) => {
             transformResponse: (r) => r,
         });
 
-        const contentDisposition = blob.headers['content-disposition'];
-        let fileName = 'smsLogs.xlsx';
-
-        if (contentDisposition) {
-            const match = contentDisposition.match(/filename="?(.+)"?/);
-            if (match && match[1]) {
-                fileName = match[1];
-            }
-        }
-
+    
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download =  fileName;
+        link.download =  `SmsLogs_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
         document.body.appendChild(link);
         link.click();
